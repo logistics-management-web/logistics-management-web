@@ -104,3 +104,18 @@ function warehouseToggleStatus($data) {
         return false;
     }
 }
+
+function warehouseDelete($data) {
+    global $conn;
+    connectDB();
+    
+    $id = (int)$data['delete_id'];
+    
+    $sql = "DELETE FROM hubs WHERE id = $id";
+            
+    if (mysqli_query($conn, $sql)) {
+        return true;
+    } else {
+        return false;
+    }
+}

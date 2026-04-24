@@ -30,6 +30,15 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['submit_toggle_status']
     }
 }
 
+if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['submit_delete_warehouse'])) {
+    $isDeleted = warehouseDelete($_POST);
+    if ($isDeleted) {
+        echo "<script> window.location.href='index.php';</script>";
+    } else {
+        echo "<script>alert('Lỗi: Không thể xóa kho bãi. Kho này có thể đang chứa dữ liệu liên quan (nhân sự, ...).');</script>";
+    }
+}
+
 $hubs = warehouseList();
 $managers = ManagerHubList();
 ?>
@@ -112,9 +121,17 @@ $managers = ManagerHubList();
                     <input type="hidden" name="current_status" value="<?php echo $hub['is_active']; ?>">
                     <button type="submit" name="submit_toggle_status" 
                             class="btn btn-sm <?php echo $hub['is_active'] ? 'btn-warning' : 'btn-info'; ?>"
-                            onclick="return confirm('Bạn có chắc chắn muốn <?php echo $hub['is_active'] ? 'đóng băng (tắt)' : 'kích hoạt (bật)'; ?> kho này không?');">
+                            onclick="return confirm('Bạn có chắc chắn muốn <?php echo $hub['is_active'] ? 'đóng băng' : 'kích hoạt'; ?> kho này không?');">
                         <?php echo $hub['is_active'] ? 'Tắt' : 'Bật'; ?>
                     </button>
+                    <form method="POST" action="index.php" style="display:inline-block;">
+                    <input type="hidden" name="delete_id" value="<?php echo $hub['id']; ?>">
+                    <button type="submit" name="submit_delete_warehouse" 
+                            class="btn btn-sm btn-danger"
+                            onclick="return confirm('Bạn có chắc chắn muốn xóa kho này không? Hành động này không thể hoàn tác!');">
+                        Xóa
+                    </button>
+                </form>
                 </form>
                 </td>
             </tr>
