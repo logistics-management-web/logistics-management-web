@@ -1,0 +1,56 @@
+.logs-section-title {
+  font-size: 16px;
+  font-weight: bold;
+  color: #2b3674;
+  margin-bottom: 20px;
+  padding-bottom: 10px;
+  border-bottom: 1px dashed #e2e8f0;
+}
+
+.logs-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.logs-table th {
+  background-color: #f4f7fe;
+  color: #8f9bba;
+  font-size: 12px;
+  text-transform: uppercase;
+  padding: 12px 16px;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.logs-table td {
+  padding: 12px 16px;
+  border-bottom: 1px solid #e2e8f0;
+  font-size: 13px;
+  color: #2b3674;
+  vertical-align: top;
+}
+
+.logs-table tbody tr:nth-child(odd) {
+  background-color: #ffffff;
+}
+.logs-table tbody tr:nth-child(even) {
+  background-color: #fafbfc;
+}
+
+.logs-table tbody tr:hover {
+  background-color: #f0f4ff;
+}
+
+.log-time {
+  font-weight: bold;
+  color: #2b3674;
+  display: block;
+  margin-bottom: 4px;
+}
+.log-date {
+  font-size: 12px;
+  color: #8f9bba;
+}

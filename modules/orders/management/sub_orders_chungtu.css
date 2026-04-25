@@ -1,0 +1,72 @@
+.doc-section-title {
+  font-size: 16px;
+  font-weight: bold;
+  color: #2b3674;
+  margin-bottom: 20px;
+  padding-bottom: 10px;
+  border-bottom: 1px dashed #e2e8f0;
+}
+
+.doc-row {
+  margin: 0 -10px;
+}
+
+.doc-col {
+  float: left;
+  width: 33.3333%;
+  padding: 0 10px;
+  margin-bottom: 20px;
+}
+
+.doc-card {
+  background-color: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 20px;
+  text-align: center;
+  transition: all 0.3s;
+}
+
+.doc-card:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  border-color: #a3aed1;
+}
+
+.doc-icon {
+  font-size: 40px;
+  margin-bottom: 16px;
+}
+.icon-pdf {
+  color: #ef4444;
+}
+.icon-img {
+  color: #10b981;
+}
+.icon-sign {
+  color: #4318ff;
+}
+
+.doc-title {
+  font-size: 14px;
+  font-weight: bold;
+  color: #2b3674;
+  margin-bottom: 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.doc-meta {
+  font-size: 12px;
+  color: #8f9bba;
+  margin-bottom: 16px;
+}
+
+.doc-actions {
+  border-top: 1px solid #f4f7fe;
+  padding-top: 16px;
+}
+.doc-actions .btn {
+  padding: 6px 10px;
+  font-size: 12px;
+}
