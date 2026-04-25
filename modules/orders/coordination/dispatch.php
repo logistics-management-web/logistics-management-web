@@ -152,7 +152,7 @@ try {
     $total_orders = mysqli_fetch_row($resCount)[0];
     $total_pages = ceil($total_orders / $limit);
 
-    $sql_all = "SELECT o.*, d.full_name as driver_name FROM orders o LEFT JOIN drivers d ON o.driver_id = d.id ORDER BY o.id DESC LIMIT ? OFFSET ?";
+    $sql_all = "SELECT o.*, d.full_name as driver_name FROM orders o LEFT JOIN drivers d ON o.driver_id = d.id ORDER BY o.id ASC LIMIT ? OFFSET ?";
     $stmt_all = mysqli_prepare($conn, $sql_all);
     mysqli_stmt_bind_param($stmt_all, "ii", $limit, $offset);
     mysqli_stmt_execute($stmt_all);
@@ -179,7 +179,7 @@ try {
         mysqli_stmt_close($stmt_single);
 
         // Lấy ảnh POD
-        $sql_pod = "SELECT file_url FROM order_documents WHERE order_id = ? AND type = 'pod' ORDER BY id DESC LIMIT 1";
+        $sql_pod = "SELECT file_url FROM order_documents WHERE order_id = ? AND type = 'pod' ORDER BY id ASC LIMIT 1";
         $stmt_pod = mysqli_prepare($conn, $sql_pod);
         mysqli_stmt_bind_param($stmt_pod, "i", $selected_id);
         mysqli_stmt_execute($stmt_pod);
