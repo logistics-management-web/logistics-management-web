@@ -301,6 +301,12 @@ try {
                                 <span>Loại hàng: <strong><?= htmlspecialchars($selected_order['goods_type'] ?? 'N/A') ?></strong></span>
                                 <span>Khối lượng: <strong><?= htmlspecialchars($selected_order['weight'] ?? 0) ?> kg</strong></span>
                             </div>
+
+                            <?php if (!empty($selected_order['note'])): ?>
+                            <div class="alert alert-warning py-2 border-0 mb-2 small">
+                                <i class="bi bi-pencil-square"></i> <strong>Ghi chú:</strong> <?= htmlspecialchars($selected_order['note']) ?>
+                            </div>
+                            <?php endif; ?>
                             <div class="alert alert-secondary py-2 border-0 mb-4">
                                 <div class="d-flex justify-content-between align-items-center">
                                     <span class="small">Phí ship: <?= number_format($selected_order['shipping_fee'] ?? 0) ?>đ</span>
