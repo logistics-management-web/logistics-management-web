@@ -1,19 +1,62 @@
 <?php
 require "../../config/db.php";
-function warehouseList() {
+// Sửa hàm warehouseList
+function warehouseList($search = '', $type = '', $status = '', $region = '', $manager_id = '', $limit = 10, $offset = 0) {
     global $conn;
     connectDB();
-    $sql = "SELECT hubs.id, code, name, type, region, address, open_time, close_time, max_capacity, hubs.manager_id, hubs.is_active, full_name 
+
+    $whereClause = "WHERE 1=1 ";
+    if ($search != '') {
+        $search = mysqli_real_escape_string($conn, $search);
+        $whereClause .= " AND (hubs.code LIKE '%$search%' OR hubs.name LIKE '%$search%') ";
+    }
+    if ($type != '') {
+        $type = mysqli_real_escape_string($conn, $type);
+        $whereClause .= " AND hubs.type = '$type' ";
+    }
+    if ($status != '') {
+        $status = (int)$status;
+        $whereClause .= " AND hubs.is_active = $status ";
+    }
+    // Thêm lọc theo khu vực
+    if ($region != '') {
+        $region = mysqli_real_escape_string($conn, $region);
+        $whereClause .= " AND hubs.region LIKE '%$region%' ";
+    }
+    // Thêm lọc theo quản lý
+    if ($manager_id != '') {
+        $manager_id = (int)$manager_id;
+        $whereClause .= " AND hubs.manager_id = $manager_id ";
+    }
+
+    $sql = "SELECT hubs.*, users.full_name 
             FROM hubs
-            INNER JOIN users ON hubs.manager_id = users.id";
+            LEFT JOIN users ON hubs.manager_id = users.id
+            $whereClause
+            ORDER BY hubs.created_at DESC
+            LIMIT $limit OFFSET $offset";
+            
     $query = mysqli_query($conn, $sql);
     $result = array();
-    while($row = mysqli_fetch_assoc($query)) {
-        $result[] = $row;
-    }
+    while($row = mysqli_fetch_assoc($query)) { $result[] = $row; }
     return $result;
 }
 
+function warehouseCount($search = '', $type = '', $status = '', $region = '', $manager_id = '') {
+    global $conn;
+    connectDB();
+    $whereClause = "WHERE 1=1 ";
+    if ($search != '') { $search = mysqli_real_escape_string($conn, $search); $whereClause .= " AND (code LIKE '%$search%' OR name LIKE '%$search%') "; }
+    if ($type != '') { $type = mysqli_real_escape_string($conn, $type); $whereClause .= " AND type = '$type' "; }
+    if ($status != '') { $status = (int)$status; $whereClause .= " AND is_active = $status "; }
+    if ($region != '') { $region = mysqli_real_escape_string($conn, $region); $whereClause .= " AND region LIKE '%$region%' "; }
+    if ($manager_id != '') { $manager_id = (int)$manager_id; $whereClause .= " AND manager_id = $manager_id "; }
+
+    $sql = "SELECT COUNT(*) as total FROM hubs $whereClause";
+    $query = mysqli_query($conn, $sql);
+    $row = mysqli_fetch_assoc($query);
+    return $row['total'];
+}
 function warehouseAdd($data) {
     global $conn;
     connectDB();
@@ -108,14 +151,8 @@ function warehouseToggleStatus($data) {
 function warehouseDelete($data) {
     global $conn;
     connectDB();
-    
     $id = (int)$data['delete_id'];
-    
     $sql = "DELETE FROM hubs WHERE id = $id";
-            
-    if (mysqli_query($conn, $sql)) {
-        return true;
-    } else {
-        return false;
-    }
+    if (mysqli_query($conn, $sql)) return true;
+    else return false;
 }
