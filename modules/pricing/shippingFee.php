@@ -1,37 +1,26 @@
 <?php
 require "../../config/db.php";
 
-function calculateShippingFee($order_id) {
+function calculateShippingFee($source_text, $dest_text, $weight) {
     global $conn;   
     connectDB();
-    $safe_order_id = (int)$order_id;
-    // 1. LẤY THÔNG TIN ĐƠN HÀNG
-    $sqlOrder = "SELECT source_text, dest_text, weight FROM orders WHERE id = $safe_order_id";
-    $orderQuery = mysqli_query($conn, $sqlOrder);
-    $order = mysqli_fetch_assoc($orderQuery);
-    
-    if (!$order) {
-        return ['error' => 'Không tìm thấy thông tin đơn hàng số: ' . $safe_order_id];
-    }
-
+    // 1. XỬ LÝ DỮ LIỆU ĐẦU VÀO
     // Hàm nội bộ để làm sạch tên tỉnh/thành phố
     $getProvinceOnly = function($address) {
         $parts = explode(',', $address);
         $province = trim(end($parts));
-        // Loại bỏ các tiền tố như Kho, Hub Tổng
-        $province = preg_replace('/^(Kho|Hub Tổng)\s+/ui', '', $province);
-        return $province;
+        return preg_replace('/^(Kho|Hub Tổng)\s+/ui', '', $province);
     };
 
-    $source_province = $getProvinceOnly($order['source_text']);
-    $dest_province = $getProvinceOnly($order['dest_text']);
+    $source_province = $getProvinceOnly($source_text);
+    $dest_province = $getProvinceOnly($dest_text);
     
     $source_esc = mysqli_real_escape_string($conn, $source_province);
     $dest_esc = mysqli_real_escape_string($conn, $dest_province);
-    $actual_weight = (float)$order['weight'];
+    $actual_weight = (float)$weight;
 
     // 2. TÌM BẢNG GIÁ & TUYẾN ĐƯỜNG PHÙ HỢP
-    $sqlRoute = "SELECT rr.id as route_id, rr.base_weight, rr.base_price, r.name as rate_name
+    $sqlRoute = "SELECT rr.id as route_id, rr.base_weight, rr.base_price
                  FROM rate_routes rr
                  JOIN rates r ON rr.rate_id = r.id
                  WHERE r.status = 'active' 
@@ -45,33 +34,30 @@ function calculateShippingFee($order_id) {
     $routeQuery = mysqli_query($conn, $sqlRoute);
     $route = mysqli_fetch_assoc($routeQuery);
 
+    // Trả về false (hoặc -1) nếu không tìm thấy tuyến đường, giúp bên ngoài dễ dàng dùng lệnh if để kiểm tra lỗi
     if (!$route) {
-        return ['error' => 'Không tìm thấy bảng giá active cho tuyến: <strong>' . htmlspecialchars($source_province) . ' ➔ ' . htmlspecialchars($dest_province) . '</strong>'];
+        return false; 
     }
 
-    // 3. TÍNH TOÁN CƯỚC PHÍ
+    // 3. TÍNH TOÁN TỔNG SỐ TIỀN
     $route_id = $route['route_id'];
     $base_weight = (float)$route['base_weight'];
     $base_price = (float)$route['base_price'];
     
-    $total_extra_fee = 0;
-    $total_fee = $base_price; // Mặc định tổng phí ít nhất là giá cơ bản
-    $breakdown = "";
+    $total_fee = $base_price; // Phí khởi điểm ít nhất bằng giá cơ bản
 
-    // So sánh khối lượng
-    if ($actual_weight <= $base_weight) {
-        $breakdown = "Gói hàng ({$actual_weight}kg) nằm trong khối lượng cơ bản ({$base_weight}kg). Chỉ thu cước cơ bản.";
-    } else {
+    // Nếu khối lượng thực tế lớn hơn khối lượng cơ bản thì mới tính thêm phụ phí
+    if ($actual_weight > $base_weight) {
         $extra_weight = $actual_weight - $base_weight;
-        $breakdown = "Cước cơ bản ({$base_weight}kg): " . number_format($base_price) . " VNĐ.<br>";
-        $breakdown .= "Khối lượng vượt: <strong>{$extra_weight}kg</strong>. Chi tiết phụ phí lũy tiến:<br>";
+        $total_extra_fee = 0;
         
-        $sqlTiers = "SELECT * FROM rate_tiers WHERE rate_route_id = $route_id ORDER BY from_weight ASC";
+        $sqlTiers = "SELECT from_weight, to_weight, step_weight, step_price 
+                     FROM rate_tiers 
+                     WHERE rate_route_id = $route_id 
+                     ORDER BY from_weight ASC";
         $tiersQuery = mysqli_query($conn, $sqlTiers);
         
-        if (mysqli_num_rows($tiersQuery) == 0) {
-            $breakdown .= "<span class='text-danger'>Cảnh báo: Tuyến này chưa được cấu hình Bậc giá vượt mức!</span>";
-        } else {
+        if (mysqli_num_rows($tiersQuery) > 0) {
             $remaining_weight = $extra_weight;
             
             while ($tier = mysqli_fetch_assoc($tiersQuery)) {
@@ -86,26 +72,20 @@ function calculateShippingFee($order_id) {
                 $weight_in_tier = min($remaining_weight, $tier_capacity);
                 
                 if ($weight_in_tier > 0) {
+                    // Tính số bước nhảy
                     $steps = ceil($weight_in_tier / $step_weight);
-                    $tier_fee = $steps * $step_price;
+                    $total_extra_fee += ($steps * $step_price);
                     
-                    $total_extra_fee += $tier_fee;
+                    // Trừ đi khối lượng đã tính phí
                     $remaining_weight -= $weight_in_tier; 
-                    
-                    $tier_to_text = ($to === INF) ? 'Max' : $to.'kg';
-                    $breakdown .= "- Bậc {$from}kg ➔ {$tier_to_text} (tính cho {$weight_in_tier}kg): {$steps} bước nhảy x " . number_format($step_price) . " = <strong>" . number_format($tier_fee) . " VNĐ</strong>.<br>";
                 }
             }
-
-            if ($remaining_weight > 0) {
-                 $breakdown .= "<span class='text-danger'>Cảnh báo: Cấu hình bậc giá chưa đến Max. Gói hàng bị dư {$remaining_weight}kg không được tính phụ phí!</span><br>";
-            }
-            
-            $total_fee = $base_price + $total_extra_fee;
-            $breakdown .= "<hr><strong>Tổng phụ phí: " . number_format($total_extra_fee) . " VNĐ</strong>";
+            // Cộng phụ phí lũy tiến vào tổng tiền
+            $total_fee += $total_extra_fee;
         }
     }
 
+    // 4. TRẢ VỀ TỔNG SỐ TIỀN CUỐI CÙNG
     return $total_fee;
 }
 ?>
