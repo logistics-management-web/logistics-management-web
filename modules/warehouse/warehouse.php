@@ -1,11 +1,10 @@
 <?php
 require "../../config/db.php";
-// Sửa hàm warehouseList
-function warehouseList($search = '', $type = '', $status = '', $region = '', $manager_id = '', $limit = 10, $offset = 0) {
-    global $conn;
-    connectDB();
 
+function whereClause($search = '', $type = '', $status = '', $region = '', $manager_id = '') {
+    global $conn;
     $whereClause = "WHERE 1=1 ";
+
     if ($search != '') {
         $search = mysqli_real_escape_string($conn, $search);
         $whereClause .= " AND (hubs.code LIKE '%$search%' OR hubs.name LIKE '%$search%') ";
@@ -18,16 +17,23 @@ function warehouseList($search = '', $type = '', $status = '', $region = '', $ma
         $status = (int)$status;
         $whereClause .= " AND hubs.is_active = $status ";
     }
-    // Thêm lọc theo khu vực
     if ($region != '') {
         $region = mysqli_real_escape_string($conn, $region);
         $whereClause .= " AND hubs.region LIKE '%$region%' ";
     }
-    // Thêm lọc theo quản lý
     if ($manager_id != '') {
         $manager_id = (int)$manager_id;
         $whereClause .= " AND hubs.manager_id = $manager_id ";
     }
+
+    return $whereClause;
+}
+
+function warehouseList($search = '', $type = '', $status = '', $region = '', $manager_id = '', $limit = 10, $offset = 0) {
+    global $conn;
+    connectDB();
+
+    $whereClause = whereClause($search, $type, $status, $region, $manager_id);
 
     $sql = "SELECT hubs.*, users.full_name 
             FROM hubs
@@ -38,29 +44,29 @@ function warehouseList($search = '', $type = '', $status = '', $region = '', $ma
             
     $query = mysqli_query($conn, $sql);
     $result = array();
-    while($row = mysqli_fetch_assoc($query)) { $result[] = $row; }
+    while($row = mysqli_fetch_assoc($query)) { 
+        $result[] = $row; 
+    }
     return $result;
 }
 
 function warehouseCount($search = '', $type = '', $status = '', $region = '', $manager_id = '') {
     global $conn;
     connectDB();
-    $whereClause = "WHERE 1=1 ";
-    if ($search != '') { $search = mysqli_real_escape_string($conn, $search); $whereClause .= " AND (code LIKE '%$search%' OR name LIKE '%$search%') "; }
-    if ($type != '') { $type = mysqli_real_escape_string($conn, $type); $whereClause .= " AND type = '$type' "; }
-    if ($status != '') { $status = (int)$status; $whereClause .= " AND is_active = $status "; }
-    if ($region != '') { $region = mysqli_real_escape_string($conn, $region); $whereClause .= " AND region LIKE '%$region%' "; }
-    if ($manager_id != '') { $manager_id = (int)$manager_id; $whereClause .= " AND manager_id = $manager_id "; }
+    
+    $whereClause = whereClause($search, $type, $status, $region, $manager_id);
 
+    // Vẫn query từ bảng hubs, câu điều kiện đã có sẵn tiền tố 'hubs.' an toàn
     $sql = "SELECT COUNT(*) as total FROM hubs $whereClause";
     $query = mysqli_query($conn, $sql);
     $row = mysqli_fetch_assoc($query);
     return $row['total'];
 }
+
 function warehouseAdd($data) {
     global $conn;
     connectDB();
-    // Lọc dữ liệu đầu vào để tránh SQL Injection
+    
     $code = mysqli_real_escape_string($conn, $data['code']);
     $name = mysqli_real_escape_string($conn, $data['name']);
     $type = mysqli_real_escape_string($conn, $data['type']);
@@ -71,22 +77,18 @@ function warehouseAdd($data) {
     $close_time = mysqli_real_escape_string($conn, $data['close_time']);
     $max_capacity = (int)$data['max_capacity'];
     
-    // Mặc định kho mới tạo sẽ ở trạng thái hoạt động (1)
     $is_active = 1; 
 
     $sql = "INSERT INTO hubs (code, name, type, region, address, manager_id, open_time, close_time, max_capacity, is_active, created_at, updated_at) 
             VALUES ('$code', '$name', '$type', '$region', '$address', $manager_id, '$open_time', '$close_time', $max_capacity, $is_active, NOW(), NOW())";
     
-    if (mysqli_query($conn, $sql)) {
-        return true;
-    } else {
-        return false;
-    }
+    return mysqli_query($conn, $sql);
 }
+
 function ManagerHubList(){
     global $conn;
     connectDB();
-    $sql = "select id, full_name from users where role = 'hub_manager'";
+    $sql = "SELECT id, full_name FROM users WHERE role = 'hub_manager'";
     $query = mysqli_query($conn, $sql);
     $result = array();
     while($row = mysqli_fetch_assoc($query)){
@@ -123,11 +125,7 @@ function warehouseEdit($data) {
                 updated_at = NOW() 
             WHERE id = $id";
             
-    if (mysqli_query($conn, $sql)) {
-        return true;
-    } else {
-        return false;
-    }
+    return mysqli_query($conn, $sql);
 }
 
 function warehouseToggleStatus($data) {
@@ -141,11 +139,7 @@ function warehouseToggleStatus($data) {
     
     $sql = "UPDATE hubs SET is_active = $new_status, updated_at = NOW() WHERE id = $id";
             
-    if (mysqli_query($conn, $sql)) {
-        return true;
-    } else {
-        return false;
-    }
+    return mysqli_query($conn, $sql);
 }
 
 function warehouseDelete($data) {
@@ -153,6 +147,6 @@ function warehouseDelete($data) {
     connectDB();
     $id = (int)$data['delete_id'];
     $sql = "DELETE FROM hubs WHERE id = $id";
-    if (mysqli_query($conn, $sql)) return true;
-    else return false;
+    return mysqli_query($conn, $sql);
 }
+?>

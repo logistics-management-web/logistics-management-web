@@ -200,7 +200,18 @@ disconnectDB();
             <div class="pagination-container">
                 <div class="pagination">
                     <?php 
-                    $query_string = "&search=".urlencode($search)."&type=".urlencode($type)."&status=".urlencode($status)."&region=".urlencode($region)."&manager_id=".urlencode($manager_id);
+                    // Lấy toàn bộ các tham số GET hiện tại
+                    $queryParams = $_GET;
+                    
+                    // Loại bỏ tham số 'page' ra khỏi mảng để tránh bị lặp (ví dụ: ?page=2&page=3)
+                    unset($queryParams['page']);
+                    
+                    // Build chuỗi query tự động
+                    $built_query = http_build_query($queryParams);
+                    
+                    // Thêm dấu '&' ở đầu nếu mảng param không rỗng
+                    $query_string = !empty($built_query) ? "&" . $built_query : "";
+
                     for ($i = 1; $i <= $total_pages; $i++): 
                     ?>
                         <a href="?page=<?php echo $i . $query_string; ?>" 
