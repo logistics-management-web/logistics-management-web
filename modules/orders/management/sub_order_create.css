@@ -1,0 +1,91 @@
+#create-order-box {
+  width: 800px;
+}
+
+.form-section-title {
+  font-size: 14px;
+  font-weight: bold;
+  color: #4318ff;
+  margin-top: 20px;
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #e2e8f0;
+  text-transform: uppercase;
+}
+.form-section-title:first-child {
+  margin-top: 0;
+}
+
+.form-row {
+  margin: 0 -10px;
+  margin-bottom: 16px;
+}
+.form-col-50 {
+  float: left;
+  width: 50%;
+  padding: 0 10px;
+}
+.form-col-33 {
+  float: left;
+  width: 33.3333%;
+  padding: 0 10px;
+}
+.form-col-25 {
+  float: left;
+  width: 25%;
+  padding: 0 10px;
+}
+.form-col-100 {
+  float: left;
+  width: 100%;
+  padding: 0 10px;
+}
+
+.form-group {
+  margin-bottom: 16px;
+}
+.form-label {
+  display: block;
+  font-size: 13px;
+  color: #2b3674;
+  font-weight: bold;
+  margin-bottom: 6px;
+}
+.form-label .required {
+  color: #ef4444;
+}
+
+.form-control {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  font-size: 14px;
+  color: #2b3674;
+  background-color: white;
+  outline: none;
+}
+.form-control:focus {
+  border-color: #4318ff;
+  box-shadow: 0 0 0 2px #e9e3ff;
+}
+
+textarea.form-control {
+  resize: vertical;
+  min-height: 80px;
+}
+
+.input-group {
+  position: relative;
+}
+.input-group .form-control {
+  padding-right: 40px;
+}
+.input-addon {
+  position: absolute;
+  right: 12px;
+  top: 10px;
+  color: #8f9bba;
+  font-size: 13px;
+  font-weight: bold;
+}
