@@ -1,6 +1,7 @@
 <?php
 require_once '../../../config/config.php';
-
+global $conn;
+connectDB();
 ob_clean();
 header('Content-Type: application/json; charset=utf-8');
 date_default_timezone_set('Asia/Ho_Chi_Minh');

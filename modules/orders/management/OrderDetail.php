@@ -1,4 +1,6 @@
 <?php
+global $conn;
+connectDB();
 error_reporting(E_ERROR | E_PARSE);
 require_once '../../../config/config.php';
 date_default_timezone_set('Asia/Ho_Chi_Minh');
