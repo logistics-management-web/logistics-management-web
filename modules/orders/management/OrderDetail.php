@@ -48,7 +48,6 @@ if ($kq_docs) while($r = mysqli_fetch_assoc($kq_docs)) $danh_sach_docs[] = $r;
       </div>
     </div>
     <div class="modal-header-right">
-      <i class="fa-solid fa-print modal-close-btn" style="color: #2b3674"></i>
       <i class="fa-solid fa-xmark modal-close-btn" id="close-modal-btn" onclick="dongModalChiTiet()"></i>
     </div>
   </div>
@@ -88,12 +87,6 @@ if ($kq_docs) while($r = mysqli_fetch_assoc($kq_docs)) $danh_sach_docs[] = $r;
         <p class="text-bold" id="detail-receiver-name"><?= $don['full_name'] ?: "Khách vãng lai" ?></p>
         <p class="text-blue" style="font-size: 13px; margin-top: 4px" id="detail-receiver-phone"><?= $don['phone'] ?: "Chưa có số" ?></p>
         <p class="text-gray" style="font-size: 13px; margin-top: 4px" id="detail-receiver-address"><?= $don['dest_text'] ?></p>
-      </div>
-
-      <div style="clear: both; padding-top: 20px">
-        <div style="background-color: #f4f7fe; text-align: center; padding: 30px; border-radius: 8px; border: 1px dashed #a3aed1;">
-          <button class="btn btn-outline"><i class="fa-solid fa-expand"></i> Xem bản đồ lớn</button>
-        </div>
       </div>
     </div>
 
@@ -157,7 +150,7 @@ if ($kq_docs) while($r = mysqli_fetch_assoc($kq_docs)) $danh_sach_docs[] = $r;
           <div class="doc-title"><?= $doc['type'] ?></div>
           <div class="doc-meta"><?= date('d/m/Y - H:i', strtotime($doc['created_at'])) ?></div>
           <div class="doc-actions">
-            <a href="<?= $doc['file_url'] ?>" target="_blank" class="btn btn-outline"><i class="fa-solid fa-eye"></i> Xem</a>
+            <a href="/md2/chungtu.jpg" target="_blank" class="btn btn-outline"><i class="fa-solid fa-eye"></i> Xem</a>
           </div>
         </div>
       </div>
