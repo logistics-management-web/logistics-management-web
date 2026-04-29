@@ -4,7 +4,7 @@
       <h5>Thêm Kho Bãi Mới</h5>
       <button type="button" class="btn-close" onclick="closeModal('addWarehouseModal')"><i class="fa-solid fa-xmark"></i></button>
     </div>
-    <form method="POST" action="index.php">
+    <form method="POST" action="index.php" autocomplete="off"">
         <div class="modal-body">
             <div class="form-row">
                 <div class="form-col">

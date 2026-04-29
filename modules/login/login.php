@@ -1,13 +1,12 @@
 <?php
 session_start();
-
 // Nếu đã đăng nhập rồi thì đẩy thẳng vào trang điều phối
 if (isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true) {
-    header("location: ../orders/coordination/dispatch.php");
+    header("location: ../orders/management/main_orders.php");
     exit;
 }
 
-require_once "../../config/db.php"; // Chú ý đường dẫn file config
+require_once "../../config/config.php"; // Chú ý đường dẫn file config
 
 // Gọi hàm kết nối database từ file db.php để khởi tạo biến $conn
 connectDB();
@@ -68,8 +67,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                             // Đóng kết nối trước khi redirect
                             disconnectDB();
                             
-                            // Chuyển hướng tới trang Điều phối
-                            header("location: ../orders/coordination/dispatch.php");
+                            // Chuyển hướng tới trang Điều phối 
+                            header("location: ../orders/management/main_orders.php");
                             exit;
                         } else {
                             $login_err = "Sai mật khẩu. Vui lòng kiểm tra lại.";

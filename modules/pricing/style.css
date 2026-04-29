@@ -13,11 +13,6 @@ body {
 }
 
 /* 2. LAYOUT (Bố cục chính) */
-.main-content {
-  margin-left: 250px;
-  padding: 0;
-}
-
 .page-container {
   padding: 24px;
 }

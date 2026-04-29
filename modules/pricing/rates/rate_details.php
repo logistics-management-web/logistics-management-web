@@ -79,10 +79,11 @@ $routes = routeList($rate_id);
                                     data-bw="<?php echo $route['base_weight']; ?>"
                                     data-bp="<?php echo $route['base_price']; ?>">Sửa</button>
 
-                            <form method="POST" onsubmit="return confirm('Xóa tuyến này? Toàn bộ bậc giá sẽ bị mất.');" style="display:inline; margin:0;">
-                                <input type="hidden" name="delete_route_id" value="<?php echo $route['id']; ?>">
-                                <button type="submit" name="submit_delete_route" class="btn btn-sm btn-danger">Xóa</button>
-                            </form>
+                            <button type="button" class="btn btn-sm btn-danger btn-delete-route" 
+                                data-routeid="<?php echo $route['id']; ?>"
+                                data-name="<?php echo htmlspecialchars($src_text . ' ⇄ ' . $dst_text); ?>">
+                            Xóa
+                        </button>
                         </div>
                     </div>
                     
@@ -115,11 +116,14 @@ $routes = routeList($rate_id);
                                                 data-to="<?php echo $tier['to_weight']; ?>"
                                                 data-stepw="<?php echo $tier['step_weight']; ?>"
                                                 data-stepp="<?php echo $tier['step_price']; ?>">Sửa</button>
-                                        
-                                        <form method="POST" style="display:inline; margin:0;" onsubmit="return confirm('Xóa bậc giá này?');">
-                                            <input type="hidden" name="delete_tier_id" value="<?php echo $tier['id']; ?>">
-                                            <button type="submit" name="submit_delete_tier" class="btn btn-sm btn-danger">Xóa</button>
-                                        </form>
+                                        <?php
+                                        $tier_name = 'từ ' . $tier['from_weight'] . 'kg' . (!empty($tier['to_weight']) ? ' đến ' . $tier['to_weight'] . 'kg' : ' trở lên');
+                                        ?>
+                                        <button type="button" class="btn btn-sm btn-danger btn-delete-tier" 
+                                                data-tierid="<?php echo $tier['id']; ?>"
+                                                data-name="<?php echo htmlspecialchars($tier_name); ?>">
+                                            Xóa
+                                        </button>
                                     </td>
                                 </tr>
                                 <?php endforeach; ?>
@@ -155,8 +159,10 @@ $routes = routeList($rate_id);
 
 <?php include '../routes/route-add.php'; ?>
 <?php include '../routes/route-edit.php'; ?>
+<?php include '../routes/route-delete.php'; ?>
 <?php include '../tier/tier-add.php'; ?>
 <?php include '../tier/tier-edit.php'; ?>
+<?php include '../tier/tier-delete.php'; ?>
 
 <script>
     function openModal(id) { document.getElementById(id).classList.add('show'); }
@@ -171,6 +177,14 @@ $routes = routeList($rate_id);
             document.getElementById('edit_base_weight').value = this.getAttribute('data-bw');
             document.getElementById('edit_base_price').value = this.getAttribute('data-bp');
             openModal('editRouteModal');
+        });
+    });
+    
+    document.querySelectorAll('.btn-delete-route').forEach(btn => {
+        btn.addEventListener('click', function() {
+            document.getElementById('delete_route_id_input').value = this.getAttribute('data-routeid');
+            document.getElementById('delete_route_name').textContent = this.getAttribute('data-name');
+            openModal('deleteRouteModal');
         });
     });
 
@@ -192,6 +206,14 @@ $routes = routeList($rate_id);
             document.getElementById('edit_tier_step_w').value = this.getAttribute('data-stepw');
             document.getElementById('edit_tier_step_p').value = this.getAttribute('data-stepp');
             openModal('editTierModal');
+        });
+    });
+
+    document.querySelectorAll('.btn-delete-tier').forEach(btn => {
+        btn.addEventListener('click', function() {
+            document.getElementById('delete_tier_id_input').value = this.getAttribute('data-tierid');
+            document.getElementById('delete_tier_name').textContent = this.getAttribute('data-name');
+            openModal('deleteTierModal');
         });
     });
 </script>

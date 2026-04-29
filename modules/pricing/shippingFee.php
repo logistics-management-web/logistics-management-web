@@ -1,5 +1,5 @@
 <?php
-require "../../config/db.php";
+require_once "../../config/config.php";
 
 function calculateShippingFee($source_text, $dest_text, $weight) {
     global $conn;   

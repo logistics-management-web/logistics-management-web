@@ -1,6 +1,6 @@
 <?php
 session_start();
-require_once "../../../config/db.php";
+require_once "../../../config/config.php";
 
 // Khởi tạo kết nối DB
 connectDB();
@@ -211,43 +211,7 @@ try {
 
 <body>
 
-    <aside id="sidebar">
-        <div class="sidebar-logo">MD Logistic</div>
-
-        <div class="menu-section">VẬN HÀNH</div>
-        <ul class="sidebar-menu">
-            <li><a href="dashboard.php"><i class="bi bi-pie-chart-fill"></i> Dashboard Vận hành</a></li>
-            <li><a href="orders.php"><i class="bi bi-box-seam-fill"></i> Quản lý Đơn hàng</a></li>
-            <li class="active"><a href="dispatch.php"><i class="bi bi-diagram-3-fill"></i> Điều phối Đơn hàng</a></li>
-        </ul>
-
-        <div class="menu-section">HỆ THỐNG</div>
-        <ul class="sidebar-menu">
-            <li><a href="#"><i class="bi bi-buildings-fill"></i> Quản trị Kho bãi</a></li>
-            <li><a href="#"><i class="bi bi-truck"></i> Quản trị Xe tải</a></li>
-            <li><a href="#"><i class="bi bi-receipt"></i> Bảng giá cước</a></li>
-        </ul>
-
-        <div class="sidebar-footer">
-            <img src="https://ui-avatars.com/api/?name=Admin+User&background=eff6ff&color=1d4ed8" alt="Avatar">
-            <div>
-                <div class="text-bold-dark" style="font-size: 14px;"><?= htmlspecialchars($dispatcher_name) ?></div>
-                <div style="font-size: 12px; color: #8f9bba;">admin@logiscore.vn</div>
-            </div>
-        </div>
-    </aside>
-
     <div id="main-wrapper">
-        <div class="top-navbar">
-            <div class="search-bar">
-                <i class="bi bi-search text-muted"></i>
-                <input type="text" placeholder="Tìm kiếm đơn hàng, tài xế, kho bãi...">
-            </div>
-            <div>
-                <button class="btn btn-link text-muted"><i class="bi bi-bell fs-5"></i></button>
-            </div>
-        </div>
-
         <div class="dashboard-container">
 
             <div class="dash-header clearfix">

@@ -355,3 +355,27 @@ td {
   margin: 0 8px;
   color: #8f9bba;
 }
+
+/* Styling cho Sub-menu Xe Tải */
+.sub-menu {
+  list-style: none;
+  padding-left: 36px; /* Thụt lề cho menu con */
+  margin-bottom: 8px;
+}
+
+.sub-nav-item {
+  display: block;
+  padding: 10px 12px;
+  color: #a3aed1;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 13px;
+  margin-bottom: 4px;
+  transition: all 0.2s;
+}
+
+.sub-nav-item:hover,
+.sub-nav-item.active {
+  background-color: #f4f7fe;
+  color: #4318ff;
+}

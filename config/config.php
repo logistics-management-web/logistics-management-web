@@ -1,5 +1,5 @@
 <?php
-global $conn;
+global $conn;   
 
 function connectDB() {
     global $conn;
@@ -21,7 +21,4 @@ function disconnectDB() {
         mysqli_close($conn);
     }
 }
-
-
-connectDB();
 ?>

@@ -1,5 +1,5 @@
 <?php
-require_once "../../../config/db.php";
+require_once __DIR__ . "/../../../config/config.php";
 function tierList($route_id) {
     global $conn;
     connectDB();

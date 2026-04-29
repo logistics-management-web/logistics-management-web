@@ -1,5 +1,5 @@
 <?php
-require_once __DIR__ . "/../../../config/db.php";
+require __DIR__ . "/../../../config/config.php";
 
 function rateList($search = '', $status = '', $limit = 5, $offset = 0) {
     global $conn;

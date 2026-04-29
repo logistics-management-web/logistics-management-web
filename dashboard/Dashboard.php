@@ -1,6 +1,8 @@
 <?php
 error_reporting(0);
 require_once '../config/config.php';
+global $conn;
+connectDB();
 $bay_gio = date('Y-m-d H:i:s');
 
 $loai_loc = isset($_GET['range']) ? $_GET['range'] : '7';
@@ -270,7 +272,7 @@ if ($sql_phan_tich && mysqli_num_rows($sql_phan_tich) > 0) {
 
     function applyFilter(range) {
         let params = "?range=" + range;
-        fetch("api/Dashboard.php" + params).then(r => r.text()).then(html => {
+        fetch("../../../dashboard/Dashboard.php" + params).then(r => r.text()).then(html => {
             var v = document.getElementById("main-view");
             v.innerHTML = html;
             v.querySelectorAll("script").forEach(s => eval(s.innerText));
@@ -282,7 +284,7 @@ if ($sql_phan_tich && mysqli_num_rows($sql_phan_tich) > 0) {
         let e = document.getElementById("filter-end").value;
         let h = document.getElementById("filter-hub").value;
         let params = "?range=custom&start=" + s + "&end=" + e + "&hub=" + h;
-        fetch("api/Dashboard.php" + params).then(r => r.text()).then(html => {
+        fetch("../../../dashboard/Dashboard.php" + params).then(r => r.text()).then(html => {
             var v = document.getElementById("main-view");
             v.innerHTML = html;
             v.querySelectorAll("script").forEach(s => eval(s.innerText));
@@ -295,7 +297,7 @@ if ($sql_phan_tich && mysqli_num_rows($sql_phan_tich) > 0) {
         if(curRange === 'custom') {
             params += "&start=<?php echo $ngay_bat_dau; ?>&end=<?php echo $ngay_ket_thuc; ?>&hub=<?php echo $kho_chon; ?>";
         }
-        fetch("api/Dashboard.php" + params).then(r => r.text()).then(html => {
+        fetch("../../../dashboard/Dashboard.php" + params).then(r => r.text()).then(html => {
             var v = document.getElementById("main-view");
             v.innerHTML = html;
             v.querySelectorAll("script").forEach(s => eval(s.innerText));

@@ -1,5 +1,5 @@
 window.loadOrderPage = function (params = "") {
-  fetch("api/Orders.php" + params)
+  fetch("Orders.php" + params)
     .then((res) => res.text())
     .then((html) => {
       const view = document.getElementById("main-view");

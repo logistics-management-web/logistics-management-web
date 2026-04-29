@@ -124,10 +124,11 @@ disconnectDB();
                                 </button>
                                 <a href="rates/rate_details.php?id=<?php echo $rate['id']; ?>" class="btn btn-sm btn-info">Chi tiết</a>
                                 
-                                <form method="POST" action="index.php" style="display:inline-block; margin:0;">
-                                    <input type="hidden" name="delete_id" value="<?php echo $rate['id']; ?>">
-                                    <button type="submit" name="submit_delete_rate" class="btn btn-sm btn-danger" onclick="return confirm('Bạn có chắc chắn muốn xóa?');">Xóa</button>
-                                </form>
+                                <button type="button" class="btn btn-sm btn-danger btn-delete-rate" 
+                                        data-id="<?php echo $rate['id']; ?>"
+                                        data-name="<?php echo htmlspecialchars($rate['name']); ?>">
+                                    Xóa
+                                </button>
                             </td>
                         </tr>
                     <?php endforeach; else: ?>
@@ -157,6 +158,7 @@ disconnectDB();
 
 <?php include 'rates/rates-add.php'; ?>
 <?php include 'rates/rates-edit.php'; ?>
+<?php include 'rates/rates-delete.php'; ?>
 
 <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 <script>
@@ -176,6 +178,18 @@ disconnectDB();
             document.getElementById('edit_status').value = this.getAttribute('data-status');
             document.getElementById('edit_effective_date').value = this.getAttribute('data-effectivedate');
             openModal('editRateModal');
+        });
+    });
+
+    document.querySelectorAll('.btn-delete-rate').forEach(button => {
+        button.addEventListener('click', function() {
+            var id = this.getAttribute('data-id');
+            var name = this.getAttribute('data-name');
+
+            document.getElementById('delete_rate_id_input').value = id;
+            document.getElementById('delete_rate_name').textContent = name;
+
+            openModal('deleteRateModal');
         });
     });
 </script>

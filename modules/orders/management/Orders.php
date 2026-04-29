@@ -1,7 +1,8 @@
 <?php
 error_reporting(E_ERROR | E_PARSE);
 require_once '../../../config/config.php';
-
+global $conn;
+connectDB();
 date_default_timezone_set('Asia/Ho_Chi_Minh');
 $bay_gio = date('Y-m-d H:i:s');
 

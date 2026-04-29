@@ -1,5 +1,5 @@
 <?php
-require "../../config/db.php";
+require "../../config/config.php";
 
 function whereClause($search = '', $type = '', $status = '', $region = '', $manager_id = '') {
     global $conn;

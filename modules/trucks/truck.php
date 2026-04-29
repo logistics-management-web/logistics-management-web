@@ -1,5 +1,5 @@
 <?php
-require('config/db.php');
+require "../../config/config.php";
 
 function truckList() {
 global $conn;

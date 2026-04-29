@@ -71,7 +71,7 @@ disconnectDB();
         </div>
 
         <div class="filter-section">
-            <form method="GET" action="index.php" id="filterForm" class="filter-form">
+            <form method="GET" action="index.php" id="filterForm" class="filter-form" autocomplete="off">
                 <div class="search-box-filter">
                     <i class="fa-solid fa-magnifying-glass"></i>
                     <input type="text" name="search" placeholder="Mã hoặc tên kho..." 
@@ -173,21 +173,18 @@ disconnectDB();
                                 <form method="POST" action="index.php" style="display:inline-block; margin:0;">
                                     <input type="hidden" name="toggle_id" value="<?php echo $hub['id']; ?>">
                                     <input type="hidden" name="current_status" value="<?php echo $hub['is_active']; ?>">
+                                    
                                     <button type="submit" name="submit_toggle_status" 
-                                            class="btn btn-sm <?php echo $hub['is_active'] ? 'btn-warning' : 'btn-info'; ?>"
-                                            onclick="return confirm('Bạn có chắc chắn muốn <?php echo $hub['is_active'] ? 'đóng băng' : 'kích hoạt'; ?> kho này không?');">
+                                            class="btn btn-sm <?php echo $hub['is_active'] ? 'btn-warning' : 'btn-info'; ?>">
                                         <?php echo $hub['is_active'] ? 'Tắt' : 'Bật'; ?>
                                     </button>
                                 </form>
 
-                                <form method="POST" action="index.php" style="display:inline-block; margin:0;">
-                                    <input type="hidden" name="delete_id" value="<?php echo $hub['id']; ?>">
-                                    <button type="submit" name="submit_delete_warehouse" 
-                                            class="btn btn-sm btn-danger"
-                                            onclick="return confirm('Bạn có chắc chắn muốn xóa kho này không?');">
-                                        Xóa
-                                    </button>
-                                </form>
+                                <button type="button" class="btn btn-sm btn-danger btn-delete-warehouse" 
+                                        data-id="<?php echo $hub['id']; ?>"
+                                        data-name="<?php echo htmlspecialchars($hub['name']); ?>">
+                                    Xóa
+                                </button>
                             </td>
                         </tr>
                     <?php endforeach; else: ?>
@@ -229,6 +226,7 @@ disconnectDB();
 
 <?php include 'warehouse-add.php'; ?>
 <?php include 'warehouse-edit.php'; ?>
+<?php include 'warehouse-delete.php'; ?>
 
 <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 <script>
@@ -285,6 +283,18 @@ disconnectDB();
             document.getElementById('edit_manager_id').value = managerId;
 
             openModal('editWarehouseModal');
+        });
+    });
+
+    document.querySelectorAll('.btn-delete-warehouse').forEach(button => {
+        button.addEventListener('click', function() {
+            var id = this.getAttribute('data-id');
+            var name = this.getAttribute('data-name');
+
+            document.getElementById('delete_id_input').value = id;
+            document.getElementById('delete_hub_name').textContent = name;
+
+            openModal('deleteWarehouseModal');
         });
     });
 </script>

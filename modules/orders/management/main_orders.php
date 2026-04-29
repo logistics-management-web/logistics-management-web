@@ -1,3 +1,15 @@
+<?php
+session_start();
+
+// Kiểm tra nếu chưa đăng nhập thì đẩy về trang đăng nhập
+if (!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true) {
+    header("location: ../../login/login.php");
+    exit;
+}
+?>
+<!doctype html>
+<html lang="vi"></html>
+
 <!doctype html>
 <html lang="vi">
   <head>
@@ -28,15 +40,26 @@
       <a href="#" class="nav-item active"
         ><i class="fa-solid fa-clipboard-list"></i> Quản lý Đơn hàng</a
       >
-
+      <a href="#" class="nav-item active"
+        ><i class="fa-solid fa-network-wired fa-coordination"></i> Điều phối Đơn hàng</a
+      >
       <div class="menu-title">HỆ THỐNG</div>
       <a href="#" class="nav-item"
         ><i class="fa-solid fa-warehouse"></i> Quản trị Kho bãi</a
       >
+      <div class="nav-group">
+        <a href="#" class="nav-item" id="menu-trucks-main">
+          <i class="fa-solid fa-truck"></i> Quản trị Xe tải
+          <i class="fa-solid fa-chevron-down dropdown-icon" style="float: right; margin-top: 4px; font-size: 12px;"></i>
+        </a>
+        <ul class="sub-menu" id="submenu-trucks" style="display: none;">
+          <li><a href="#" class="sub-nav-item" data-src="../../trucks/truck-index.php">Danh mục Xe tải</a></li>
+          <li><a href="#" class="sub-nav-item" data-src="../../trucks/index.php">Danh mục Tài xế</a></li>
+          <li><a href="#" class="sub-nav-item" data-src="../../trucks/operating-index.php">Nhật ký vận hành</a></li>
+        </ul>
+      </div>
       <a href="#" class="nav-item"
-        ><i class="fa-solid fa-truck"></i> Quản trị Xe tải</a
-      ><a href="#" class="nav-item"
-        ><i class="fa-solid fa-file-invoice-dollar"></i> Bảng giá cước</a
+        ><i class="fa-solid fa-file-invoice-dollar fa-pricing"></i> Bảng giá cước</a
       >
 
       <div class="user-profile clearfix">
@@ -45,21 +68,14 @@
           alt="Avatar"
         />
         <div class="user-info">
-          <p class="text-bold">Admin User</p>
-          <p class="text-gray" style="font-size: 12px">admin@logiscore.vn</p>
+          <p class="text-bold"><?php echo htmlspecialchars($_SESSION["username"]); ?></p>
+          <p class="text-gray" style="font-size: 12px"><?php echo htmlspecialchars($_SESSION["email"]); ?></p>
         </div>
       </div>
     </div>
 
     <div class="main-content">
       <div class="top-header clearfix">
-        <div class="search-box">
-          <i class="fa-solid fa-search text-gray"></i>
-          <input
-            type="text"
-            placeholder="Tìm kiếm đơn hàng, tài xế, kho bãi..."
-          />
-        </div>
         <div class="header-actions">
           <i class="fa-regular fa-bell"></i>
           <img

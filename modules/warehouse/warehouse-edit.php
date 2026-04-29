@@ -4,7 +4,7 @@
       <h5>Sửa Thông Tin Kho Bãi</h5>
       <button type="button" class="btn-close" onclick="closeModal('editWarehouseModal')"><i class="fa-solid fa-xmark"></i></button>
     </div>
-    <form method="POST" action="index.php">
+    <form method="POST" action="index.php" autocomplete="off">
         <div class="modal-body">
             <input type="hidden" name="id" id="edit_id">
             
