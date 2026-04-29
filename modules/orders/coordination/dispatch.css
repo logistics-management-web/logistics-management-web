@@ -1,0 +1,425 @@
+/* ==================== DISPATCH LAYOUT & AESTHETICS ==================== */
+body {
+  background: linear-gradient(135deg, #f4f7fe 0%, #e9e3ff 100%);
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  margin: 0;
+  color: #1b2559;
+  min-height: 100vh;
+}
+
+/* --- SIDEBAR & TOPBAR (Glassmorphism) --- */
+#sidebar {
+  width: 260px;
+  height: 100vh;
+  background: rgba(255, 255, 255, 0.65);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-right: 1px solid rgba(255, 255, 255, 0.8);
+  position: fixed;
+  left: 0;
+  top: 0;
+  display: flex;
+  flex-direction: column;
+  z-index: 1000;
+  box-shadow: 4px 0 24px rgba(67, 24, 255, 0.05);
+}
+
+.sidebar-logo {
+  padding: 24px;
+  font-size: 24px;
+  font-weight: 800;
+  background: linear-gradient(to right, #1b2559, #4318ff);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  border-bottom: 1px solid rgba(226, 232, 240, 0.5);
+}
+
+.menu-section {
+  padding: 20px 24px 8px;
+  font-size: 12px;
+  font-weight: bold;
+  color: #a3aed1;
+  text-transform: uppercase;
+}
+
+.sidebar-menu {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.sidebar-menu li a {
+  display: flex;
+  align-items: center;
+  padding: 12px 24px;
+  color: #8f9bba;
+  text-decoration: none;
+  font-weight: 600;
+  transition: all 0.2s ease;
+  border-left: 3px solid transparent;
+}
+
+.sidebar-menu li a:hover {
+  color: #4318ff;
+  background: rgba(255, 255, 255, 0.5);
+  transform: translateX(4px);
+}
+
+.sidebar-menu li.active a {
+  color: #4318ff;
+  background: rgba(67, 24, 255, 0.08);
+  border-left: 3px solid #4318ff;
+}
+
+.sidebar-menu li a i {
+  margin-right: 14px;
+  font-size: 18px;
+}
+
+.sidebar-footer {
+  margin-top: auto;
+  padding: 20px 24px;
+  border-top: 1px solid rgba(226, 232, 240, 0.5);
+  display: flex;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.sidebar-footer img {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  margin-right: 12px;
+  border: 2px solid #fff;
+}
+
+#main-wrapper {
+  margin-left: 260px;
+  min-height: 100vh;
+}
+
+.top-navbar {
+  height: 76px;
+  padding: 0 32px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  z-index: 999;
+  background: rgba(244, 247, 254, 0.6);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.5);
+}
+
+.search-bar {
+  background: rgba(255, 255, 255, 0.8);
+  border-radius: 30px;
+  padding: 10px 24px;
+  display: flex;
+  align-items: center;
+  width: 400px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+  border: 1px solid rgba(255, 255, 255, 1);
+}
+
+.search-bar input {
+  border: none;
+  outline: none;
+  margin-left: 10px;
+  width: 100%;
+  background: transparent;
+  color: #2b3674;
+}
+
+/* ==================== BẢNG BO TRÒN (MODERN ROUNDED TABLE) ==================== */
+.rounded-table-card {
+  border-radius: 16px;
+  background-color: #ffffff;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+  border: 1px solid #f1f5f9;
+  padding: 24px;
+}
+
+.modern-rounded-table {
+  border-collapse: separate; 
+  border-spacing: 0 8px; /* Giảm khoảng cách giữa các dòng (từ 10px xuống 8px) */
+}
+
+.modern-rounded-table th {
+  color: #8f9bba;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  border: none;
+  padding: 8px 16px;
+  white-space: nowrap; /* Ép tiêu đề không xuống dòng */
+}
+
+.modern-rounded-table td {
+  background-color: #f8faff; 
+  padding: 10px 16px; /* Giảm padding dọc (từ 14px xuống 10px) để hàng gọn lại */
+  border: none;
+  vertical-align: middle;
+  white-space: nowrap; /* Ép toàn bộ nội dung trong ô không xuống dòng */
+  transition: all 0.2s ease;
+}
+
+/* Các class bo góc vẫn giữ nguyên */
+.modern-rounded-table tbody tr td:first-child {
+  border-top-left-radius: 10px;
+  border-bottom-left-radius: 10px;
+}
+.modern-rounded-table tbody tr td:last-child {
+  border-top-right-radius: 10px;
+  border-bottom-right-radius: 10px;
+  width: 120px; 
+}
+
+/* Giữ nguyên các hiệu ứng hover và active */
+.modern-rounded-table tbody tr:hover td {
+  background-color: #e9e3ff;
+  cursor: pointer;
+}
+
+.modern-rounded-table tbody tr.active-row td {
+  background-color: #4318ff;
+  color: #ffffff;
+}
+
+.modern-rounded-table tbody tr.active-row td .text-bold-dark,
+.modern-rounded-table tbody tr.active-row td small {
+  color: #ffffff !important;
+}
+
+/* --- NÚT CHI TIẾT --- */
+.btn-detail-action {
+  display: inline-flex;
+  align-items: center;
+  background: rgba(67, 24, 255, 0.05); 
+  color: #4318ff;
+  padding: 8px 16px;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 600;
+  border: 1px solid transparent;
+  transition: all 0.3s ease;
+}
+
+.btn-detail-action i {
+  font-size: 12px;
+  transition: transform 0.3s ease;
+}
+
+.btn-detail-action:hover {
+  background: #4318ff;
+  color: #ffffff;
+  box-shadow: 0 4px 12px rgba(67, 24, 255, 0.2);
+  transform: translateY(-1px);
+}
+
+.btn-detail-action:hover i {
+  transform: translateX(3px);
+}
+
+.active-row .btn-detail-action {
+  background: rgba(255, 255, 255, 0.2);
+  color: #ffffff;
+  border-color: rgba(255, 255, 255, 0.4);
+}
+
+.active-row .btn-detail-action:hover {
+  background: #ffffff;
+  color: #4318ff;
+}
+
+/* ==================== PHÂN TRANG (PAGINATION) ==================== */
+.table-footer {
+  border-top: 1px dashed #e2e8f0;
+}
+
+.pagination-mini {
+  display: inline-flex;
+  align-items: center;
+  background: #f8faff; 
+  border-radius: 12px;
+  padding: 4px;
+  border: 1px solid #e2e8f0;
+}
+
+.btn-page {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px; 
+  padding: 6px 16px;
+  background: #ffffff;
+  color: #8f9bba;
+  font-size: 13px;
+  font-weight: 600;
+  border-radius: 8px;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+  transition: all 0.2s ease;
+}
+
+.btn-page:hover:not(.disabled) {
+  background: #4318ff;
+  color: #ffffff;
+  box-shadow: 0 4px 10px rgba(67, 24, 255, 0.2);
+}
+
+.btn-page.disabled {
+  background: transparent;
+  color: #cbd5e1;
+  box-shadow: none;
+  cursor: not-allowed;
+  pointer-events: none; 
+}
+
+.page-num {
+  margin: 0 16px;
+  font-size: 14px;
+  font-weight: 700;
+  color: #1b2559;
+  min-width: 24px;
+  text-align: center;
+}
+
+/* --- UTILITIES --- */
+.sticky-top-card {
+  position: sticky;
+  top: 96px; 
+}
+.timeline-box::-webkit-scrollbar {
+  width: 6px;
+}
+.timeline-box::-webkit-scrollbar-track {
+  background: rgba(0,0,0,0.02);
+  border-radius: 4px;
+}
+.timeline-box::-webkit-scrollbar-thumb {
+  background-color: #cbd5e1;
+  border-radius: 4px;
+}
+
+/* ==================== DETAIL PANEL (RIGHT COLUMN) ==================== */
+
+/* Khối Card lớn bọc ngoài cùng */
+.detail-card {
+  border-radius: 16px;
+  background-color: #ffffff;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.04);
+  border: 1px solid #f1f5f9;
+  padding: 24px;
+}
+
+/* Ghi đè viền trên cùng (border-top-primary của Bootstrap) bằng màu thương hiệu */
+.detail-card.border-primary {
+  border-top-color: #4318ff !important;
+  border-top-width: 4px !important;
+}
+
+/* Nút In tem */
+.btn-print-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #f4f7fe;
+  color: #4318ff;
+  padding: 8px 16px;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+.btn-print-action:hover {
+  background: #4318ff;
+  color: #ffffff;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(67, 24, 255, 0.2);
+}
+
+/* Khối thông tin Loại hàng & Khối lượng */
+.insight-box {
+  background: #f8faff;
+  border-radius: 12px;
+  padding: 16px;
+  border: 1px dashed #cbd5e1;
+}
+
+/* Khối Tổng kết Tài chính (Ship & COD) */
+.financial-summary-box {
+  background: linear-gradient(135deg, #f4f7fe 0%, #e9e3ff 100%);
+  border: 1px solid rgba(67, 24, 255, 0.1);
+  border-radius: 12px;
+}
+
+/* Khối Gán Tài xế (Khi đã có tài xế) */
+.driver-active-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-left: 4px solid #10b981; /* Màu xanh lá thể hiện đã gán thành công */
+  box-shadow: 0 2px 12px rgba(0,0,0,0.02);
+}
+
+/* Tiêu đề các section nhỏ (TRẠNG THÁI, POD, LỊCH SỬ) */
+.insight-title {
+  font-size: 11px;
+  font-weight: 800;
+  color: #8f9bba;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 12px;
+}
+
+/* Tùy chỉnh Form & Select box trong panel chi tiết */
+.detail-card .form-select,
+.detail-card .btn-sm {
+  border-radius: 8px;
+  font-size: 13px;
+}
+.detail-card .form-select:focus {
+  border-color: #4318ff;
+  box-shadow: 0 0 0 3px rgba(67, 24, 255, 0.1);
+}
+
+/* ==================== TIMELINE (LỊCH SỬ DI CHUYỂN) ==================== */
+.timeline-list {
+  border-left: 2px solid #e2e8f0;
+  margin-left: 8px;
+  padding-left: 16px;
+  position: relative;
+}
+
+.timeline-list .list-group-item {
+  background: transparent;
+  border: none;
+  border-bottom: 1px dashed #e2e8f0;
+  padding-left: 0;
+  position: relative;
+}
+
+/* Dấu chấm tròn (Dot) của timeline */
+.timeline-list .list-group-item::before {
+  content: '';
+  position: absolute;
+  left: -21px; /* Đẩy chấm tròn ra đè lên đường viền trái của .timeline-list */
+  top: 12px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #e2e8f0;
+  border: 2px solid #ffffff;
+  transition: all 0.3s ease;
+}
+
+/* Highlight sự kiện mới nhất (dòng đầu tiên) */
+.timeline-list .list-group-item:first-child::before {
+  background: #4318ff;
+  box-shadow: 0 0 0 3px rgba(67, 24, 255, 0.2);
+}
+
+.timeline-list .list-group-item:hover::before {
+  background: #4318ff;
+  transform: scale(1.2);
+}
