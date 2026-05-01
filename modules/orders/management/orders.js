@@ -75,7 +75,7 @@ document.addEventListener("focusout", function (e) {
 window.luuDonMoi = function () {
   let form_data = new FormData();
   form_data.append("action", "create");
-  form_data.append("source", document.getElementById("input-source").value);
+  form_data.append("hub_id", document.getElementById("input-source").value);
   form_data.append(
     "phone",
     document.getElementById("input-phone-receive").value,
@@ -96,9 +96,13 @@ window.luuDonMoi = function () {
     "weight",
     document.getElementById("input-weight").value || 0,
   );
+  form_data.append(
+    "shipping_fee",
+    document.getElementById("input-shipping-fee").value || 0,
+  );
 
   if (
-    !form_data.get("source") ||
+    !form_data.get("hub_id") ||
     !form_data.get("phone") ||
     !form_data.get("name") ||
     !form_data.get("city") ||
@@ -123,7 +127,7 @@ window.luuDonMoi = function () {
       btnSave.disabled = false;
 
       if (data.status === "success") {
-        dongFormTaoDon(); // Gọi hàm đóng form đã được cập nhật tính năng dọn dẹp
+        dongFormTaoDon();
         alert("Tạo đơn hàng mới thành công.");
         window.loadOrderPage("?status=all&page=1");
       } else {
@@ -136,3 +140,50 @@ window.luuDonMoi = function () {
       alert("Lỗi kết nối máy chủ. Vui lòng kiểm tra lại hệ thống mạng.");
     });
 };
+function tinhCuocTuDong() {
+  let khoId = document.getElementById("input-source").value;
+  let tinh = document.getElementById("input-city").value;
+  let kg = document.getElementById("input-weight").value;
+
+  if (khoId && tinh && kg > 0) {
+    let fd = new FormData();
+    fd.append("action", "calc_fee");
+    fd.append("hub_id", khoId);
+    fd.append("city", tinh);
+    fd.append("weight", kg);
+
+    fetch("OrderAction.php", { method: "POST", body: fd })
+      .then((res) => res.json())
+      .then((data) => {
+        document.getElementById("input-shipping-fee").value = data.fee || 0;
+      })
+      .catch(() => {});
+  } else {
+    let inputCuoc = document.getElementById("input-shipping-fee");
+    if (inputCuoc) inputCuoc.value = "";
+  }
+}
+
+document.addEventListener("change", (e) => {
+  if (["input-source", "input-city", "input-weight"].includes(e.target.id))
+    tinhCuocTuDong();
+});
+document.addEventListener("input", (e) => {
+  if (e.target.id === "input-weight") tinhCuocTuDong();
+});
+let searchTimeout;
+const searchInput = document.getElementById("global-search-input");
+
+if (searchInput) {
+  searchInput.addEventListener("input", function () {
+    clearTimeout(searchTimeout);
+
+    const keyword = this.value.trim();
+
+    searchTimeout = setTimeout(() => {
+      window.loadOrderPage(
+        "?status=all&page=1&search=" + encodeURIComponent(keyword),
+      );
+    }, 500);
+  });
+}

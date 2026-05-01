@@ -3,7 +3,7 @@
     <div class="modal-header"><h5>Thêm Tuyến Đường Mới</h5><button type="button" class="btn-close" onclick="closeModal('addRouteModal')"><i class="fa-solid fa-xmark"></i></button></div>
     <form method="POST">
       <div class="modal-body">
-        <input type="hidden" name="rate_id" value="<?php echo $rate_id; ?>">
+        <input type="hidden" name="rate_id" value="<?php echo $rate_id ?? ''; ?>">
         <div class="form-row"><div class="form-col"><label class="form-label">Quận/Tỉnh lấy hàng</label><input type="text" class="form-control" name="source_regions" required></div></div>
         <div class="form-row"><div class="form-col"><label class="form-label">Quận/Tỉnh giao hàng</label><input type="text" class="form-control" name="dest_regions" required></div></div>
         <div class="form-row">

@@ -13,10 +13,6 @@ const menuWarehouse = document.querySelector(
   "a.nav-item i.fa-warehouse",
 )?.parentElement;
 
-/*const menuTrucks = document.querySelector(
-  "a.nav-item i.fa-truck",
-)?.parentElement;*/
-
 const menuPricing = document.querySelector(
   "a.nav-item i.fa-pricing",
 )?.parentElement;
@@ -93,24 +89,6 @@ if (menuWarehouse) {
     `;
   });
 }
-
-/*if (menuTrucks) {
-  menuTrucks.addEventListener("click", function (e) {
-    e.preventDefault();
-    setActiveMenu(this);
-    document.title = "MD Logistic - Quản trị Xe tải";
-
-    const mainView = document.getElementById("main-view");
-
-    // Nhúng toàn bộ trang Trucks qua iframe
-    mainView.innerHTML = `
-      <iframe 
-        src="../../trucks/index.php" 
-        style="width: 100%; height: calc(100vh - 85px); border: none; display: block;"
-      ></iframe>
-    `;
-  });
-}*/
 
 if (menuPricing) {
   menuPricing.addEventListener("click", function (e) {

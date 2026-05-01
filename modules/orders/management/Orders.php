@@ -3,6 +3,8 @@ error_reporting(E_ERROR | E_PARSE);
 require_once '../../../config/config.php';
 global $conn;
 connectDB();
+ob_clean();
+header('Content-Type: application/json; charset=utf-8');
 date_default_timezone_set('Asia/Ho_Chi_Minh');
 $bay_gio = date('Y-m-d H:i:s');
 
@@ -18,6 +20,7 @@ function layConSo($conn, $sql) {
 $trang_thai = $_GET['status'] ?? 'all';
 $tu_ngay = $_GET['from'] ?? '';
 $den_ngay = $_GET['to'] ?? '';
+$tu_khoa = isset($_GET['search']) ? trim($_GET['search']) : '';
 $cod_min = (isset($_GET['min_cod']) && $_GET['min_cod'] !== '') ? (float)$_GET['min_cod'] : -1;
 $cod_max = (isset($_GET['max_cod']) && $_GET['max_cod'] !== '') ? (float)$_GET['max_cod'] : -1;
 $trang_hien_tai = (int)($_GET['page'] ?? 1);
@@ -41,7 +44,12 @@ if ($tu_ngay != '') $where .= " AND DATE(o.created_at) >= '$tu_ngay'";
 if ($den_ngay != '') $where .= " AND DATE(o.created_at) <= '$den_ngay'";
 if ($cod_min >= 0) $where .= " AND o.cod_amount >= $cod_min";
 if ($cod_max >= 0) $where .= " AND o.cod_amount <= $cod_max";
-
+if ($tu_khoa !== '') {
+    $tu_khoa_esc = mysqli_real_escape_string($conn, $tu_khoa);
+    $where .= " AND (o.tracking_code LIKE '%$tu_khoa_esc%' 
+                  OR c.full_name LIKE '%$tu_khoa_esc%' 
+                  OR c.phone LIKE '%$tu_khoa_esc%')";
+}
 $tong_don_sau_loc = layConSo($conn, "SELECT COUNT(o.id) as sl FROM orders o WHERE $where");
 $tong_so_trang = ceil($tong_don_sau_loc / $limit);
 if ($tong_so_trang < 1) $tong_so_trang = 1;
@@ -62,7 +70,6 @@ $res_table = mysqli_query($conn, $sql_table);
             <p class="text-gray">Quản lý, theo dõi và điều phối đơn hàng trên toàn hệ thống.</p>
         </div>
         <div class="page-actions">
-            <button class="btn btn-outline"><i class="fa-solid fa-download"></i> Xuất file</button>
             <button class="btn btn-primary" onclick="moFormTaoDon()"><i class="fa-solid fa-plus"></i> Tạo đơn mới</button>
         </div>
     </div>
@@ -161,9 +168,21 @@ $res_table = mysqli_query($conn, $sql_table);
         <div class="pagination clearfix">
             <div class="page-info">Hiển thị <b style="color:#2b3674"><?= $offset+1 ?></b> đến <b style="color:#2b3674"><?= min($offset+$limit, $tong_don_sau_loc) ?></b> trong <b style="color:#2b3674"><?= $tong_don_sau_loc ?></b> kết quả</div>
             <div class="page-controls">
-                <?php for($i=1; $i<=$tong_so_trang; $i++) { ?>
-                    <button class="page-btn <?= ($i==$trang_hien_tai)?'active':'' ?>" onclick="window.loadOrderPage('?status=<?= $trang_thai ?>&page=<?= $i ?>')"><?= $i ?></button>
-                <?php } ?>
+                <?php 
+                $delta = 1; // Khai báo khoảng cách hiển thị 2 bên trang hiện tại
+                
+                for ($i = 1; $i <= $tong_so_trang; $i++) {
+                    // Hiển thị trang đầu, trang cuối, và các trang lân cận trang hiện tại
+                    if ($i == 1 || $i == $tong_so_trang || ($i >= $trang_hien_tai - $delta && $i <= $trang_hien_tai + $delta)) {
+                        $active = ($i == $trang_hien_tai) ? 'active' : '';
+                        echo "<button class='page-btn $active' onclick=\"window.loadOrderPage('?status=$trang_thai&page=$i')\">$i</button>";
+                    } 
+                    // Chèn dấu ... vào các khoảng trống
+                    elseif ($i == $trang_hien_tai - $delta - 1 || $i == $trang_hien_tai + $delta + 1) {
+                        echo "<span style='padding: 5px 10px; color: #8f9bba; font-weight: bold;'>...</span>";
+                    }
+                }
+                ?>
             </div>
         </div>
     </div> </div> 
@@ -187,10 +206,13 @@ $res_table = mysqli_query($conn, $sql_table);
           <label class="form-label">Điểm lấy hàng (Kho/Hub) <span class="required">*</span></label>
           <select class="form-control" id="input-source">
             <option value="">-- Chọn kho xuất phát --</option>
-            <option value="Hub Tổng Hà Nội">Hub Tổng Hà Nội</option>
-            <option value="Hub Tổng TP.HCM">Hub Tổng TP.HCM</option>
-            <option value="Hub Tổng Đà Nẵng">Hub Tổng Đà Nẵng</option>
-            <option value="Kho Hải Phòng">Kho Hải Phòng</option>
+            <?php
+            $sql_kho = "SELECT id, name FROM hubs WHERE is_active = 1";
+            $kq_kho = mysqli_query($conn, $sql_kho);
+            while ($k = mysqli_fetch_assoc($kq_kho)) {
+              echo '<option value="'.$k['id'].'">'.$k['name'].'</option>';
+            }
+            ?>
           </select>
         </div>
       </div>
@@ -267,6 +289,15 @@ $res_table = mysqli_query($conn, $sql_table);
           <label class="form-label">Tiền Thu hộ (COD)</label>
           <div class="input-group">
             <input type="text" id="input-cod" class="form-control" placeholder="0" />
+            <span class="input-addon">VNĐ</span>
+          </div>
+        </div>
+      </div>
+      <div class="form-col-33">
+        <div class="form-group">
+          <label class="form-label">Cước vận chuyển</label>
+          <div class="input-group">
+            <input type="number" id="input-shipping-fee" class="form-control" placeholder="0" readonly style="background-color: #f4f7fe; font-weight: bold; color: #10b981;" />
             <span class="input-addon">VNĐ</span>
           </div>
         </div>
