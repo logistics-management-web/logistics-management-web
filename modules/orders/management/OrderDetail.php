@@ -10,9 +10,11 @@ date_default_timezone_set('Asia/Ho_Chi_Minh');
 $id_don = (int)($_GET['id'] ?? 0);
 if ($id_don <= 0) die("<div style='padding:20px; text-align:center;'>Mã đơn hàng không hợp lệ!</div>");
 
-$sql_don = "SELECT o.*, c.full_name, c.phone 
-            FROM orders o LEFT JOIN customers c ON o.customer_id = c.id 
-            WHERE o.id = $id_don LIMIT 1";
+$sql_don = "SELECT o.*, c.full_name, c.phone, h.name as source_name
+             FROM orders o 
+             LEFT JOIN customers c ON o.customer_id = c.id
+             LEFT JOIN hubs h ON o.source_id = h.id
+             WHERE o.id = $id_don LIMIT 1";
 $kq_don = mysqli_query($conn, $sql_don);
 $don = mysqli_fetch_assoc($kq_don);
 
@@ -69,7 +71,7 @@ if ($kq_docs) while($r = mysqli_fetch_assoc($kq_docs)) $danh_sach_docs[] = $r;
       <div class="driver-info">
         <p class="text-bold">Thông tin Vận chuyển</p>
         <p class="text-gray" style="font-size: 13px; margin-top: 4px">
-          Tuyến đường: <?= $don['source_text'] ?> <i class="fa-solid fa-arrow-right" style="font-size: 10px; margin: 0 5px;"></i> <?= $don['dest_text'] ?>
+          Tuyến đường: <?= $don['source_name'] ?> <i class="fa-solid fa-arrow-right" style="font-size: 10px; margin: 0 5px;"></i> <?= $don['dest_text'] ?>
         </p>
       </div>
     </div>
@@ -83,7 +85,7 @@ if ($kq_docs) while($r = mysqli_fetch_assoc($kq_docs)) $danh_sach_docs[] = $r;
         <p class="text-gray" style="font-size: 12px; margin-bottom: 4px">NGƯỜI GỬI</p>
         <p class="text-bold">Hệ thống MD Logistic</p>
         <p class="text-blue" style="font-size: 13px; margin-top: 4px">Tổng đài CSKH</p>
-        <p class="text-gray" style="font-size: 13px; margin-top: 4px"><?= $don['source_text'] ?></p>
+        <p class="text-gray" style="font-size: 13px; margin-top: 4px"><?= $don['source_name'] ?></p>
       </div>
 
       <div style="float: left; width: 50%; padding-left: 20px; border-left: 1px solid #e2e8f0;">
@@ -103,6 +105,10 @@ if ($kq_docs) while($r = mysqli_fetch_assoc($kq_docs)) $danh_sach_docs[] = $r;
       <div class="info-row clearfix">
         <div class="info-label">Trọng lượng/KT</div>
         <div class="info-value" id="detail-goods-weight"><?= $don['weight'] ?> kg</div>
+      </div>
+      <div class="info-row clearfix">
+        <div class="info-label">Cước vận chuyển</div>
+        <div class="info-value text-red" style="font-size: 15px;"><?= number_format($don['shipping_fee'], 0, ',', '.') ?> VNĐ</div>
       </div>
       <div class="info-row clearfix">
         <div class="info-label">Tiền thu hộ (COD)</div>

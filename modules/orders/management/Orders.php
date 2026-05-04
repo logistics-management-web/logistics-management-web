@@ -50,16 +50,18 @@ if ($tu_khoa !== '') {
                   OR c.full_name LIKE '%$tu_khoa_esc%' 
                   OR c.phone LIKE '%$tu_khoa_esc%')";
 }
-$tong_don_sau_loc = layConSo($conn, "SELECT COUNT(o.id) as sl FROM orders o WHERE $where");
+$tong_don_sau_loc = layConSo($conn, "SELECT COUNT(o.id) as sl FROM orders o LEFT JOIN customers c ON o.customer_id = c.id WHERE $where");
 $tong_so_trang = ceil($tong_don_sau_loc / $limit);
 if ($tong_so_trang < 1) $tong_so_trang = 1;
 if ($trang_hien_tai > $tong_so_trang) $trang_hien_tai = $tong_so_trang;
 $offset = ($trang_hien_tai - 1) * $limit;
 
-$sql_table = "SELECT o.*, c.full_name FROM orders o 
-              LEFT JOIN customers c ON o.customer_id = c.id 
-              WHERE $where 
-              ORDER BY o.id DESC LIMIT $limit OFFSET $offset";
+$sql_table = "SELECT o.*, c.full_name, h.name as source_name 
+               FROM orders o
+               LEFT JOIN customers c ON o.customer_id = c.id
+               LEFT JOIN hubs h ON o.source_id = h.id
+               WHERE $where
+               ORDER BY o.id DESC LIMIT $limit OFFSET $offset";
 $res_table = mysqli_query($conn, $sql_table);
 ?>
 
@@ -96,6 +98,10 @@ $res_table = mysqli_query($conn, $sql_table);
     </div>
 
     <div class="table-wrapper">
+      <div class="search-box">
+            <i class="fa-solid fa-search text-gray"></i>
+            <input type="text" id="global-search-input" placeholder="Tìm kiếm đơn hàng" value="<?= htmlspecialchars($tu_khoa) ?>" />
+        </div>
         <div class="clearfix">
             <ul class="tabs">
                 <li class="<?= $trang_thai=='all'?'active':'' ?>" onclick="window.loadOrderPage('?status=all')">Tất cả</li>
@@ -118,6 +124,7 @@ $res_table = mysqli_query($conn, $sql_table);
                     <th>TUYẾN ĐƯỜNG</th>
                     <th>TRẠNG THÁI</th>
                     <th>SLA (HẠN GIAO)</th>
+                    <th>CƯỚC VẬN CHUYỂN</th>
                     <th>COD (VNĐ)</th>
                 </tr>
             </thead>
@@ -156,9 +163,10 @@ $res_table = mysqli_query($conn, $sql_table);
                     <td onclick="event.stopPropagation()"><input type="checkbox" /></td>
                     <td><b class="text-bold"><?= $don['tracking_code'] ?></b></td>
                     <td><b class="text-bold"><?= $don['full_name'] ?: "Khách vãng lai" ?></b></td>
-                    <td class="text-bold"><?= $don['source_text'] ?> → <?= $dc ?></td>
+                    <td class="text-bold"><?= $don['source_name'] ?> → <?= $dc ?></td>
                     <td><span class="status-badge <?= $mau ?>">• <?= $ten ?></span></td>
                     <?= $sla_view ?>
+                    <td class="text-bold"><?= number_format($don['shipping_fee'], 0, ',', '.') ?> đ</td>
                     <td class="text-bold"><?= number_format($don['cod_amount'], 0, ',', '.') ?> đ</td>
                 </tr>
                 <?php } ?>

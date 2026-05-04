@@ -4,10 +4,32 @@ window.loadOrderPage = function (params = "") {
     .then((html) => {
       const view = document.getElementById("main-view");
       if (view) {
+        // Lưu lại trạng thái focus và vị trí con trỏ chuột
+        const activeId = document.activeElement
+          ? document.activeElement.id
+          : null;
+        let cursorStart = 0;
+        let cursorEnd = 0;
+
+        if (activeId === "global-search-input") {
+          cursorStart = document.activeElement.selectionStart;
+          cursorEnd = document.activeElement.selectionEnd;
+        }
+
+        // Ghi đè HTML mới
         view.innerHTML = html;
         view
           .querySelectorAll("script")
           .forEach((s) => window.eval(s.innerText));
+
+        // Khôi phục lại focus và vị trí con trỏ
+        if (activeId === "global-search-input") {
+          const searchInput = document.getElementById("global-search-input");
+          if (searchInput) {
+            searchInput.focus();
+            searchInput.setSelectionRange(cursorStart, cursorEnd);
+          }
+        }
       }
     });
 };
@@ -172,18 +194,16 @@ document.addEventListener("input", (e) => {
   if (e.target.id === "input-weight") tinhCuocTuDong();
 });
 let searchTimeout;
-const searchInput = document.getElementById("global-search-input");
-
-if (searchInput) {
-  searchInput.addEventListener("input", function () {
+document.addEventListener("input", function (e) {
+  if (e.target && e.target.id === "global-search-input") {
     clearTimeout(searchTimeout);
-
-    const keyword = this.value.trim();
+    const keyword = e.target.value;
 
     searchTimeout = setTimeout(() => {
+      // Khi xóa hết, keyword = "", API sẽ tự động lấy danh sách ban đầu
       window.loadOrderPage(
         "?status=all&page=1&search=" + encodeURIComponent(keyword),
       );
     }, 500);
-  });
-}
+  }
+});

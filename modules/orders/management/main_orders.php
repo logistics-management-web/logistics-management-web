@@ -93,10 +93,6 @@ if (!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true) {
 
     <!-- TOP HEADER -->
     <div class="top-header clearfix">
-        <div class="search-box">
-            <i class="fa-solid fa-search text-gray"></i>
-            <input type="text" id="global-search-input" placeholder="Tìm kiếm đơn hàng"/>
-        </div>
 
         <div class="header-actions">
             <i class="fa-regular fa-bell"></i>

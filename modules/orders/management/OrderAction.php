@@ -103,16 +103,16 @@ if ($action === 'create') {
     $han_sla = date('Y-m-d 18:00:00', strtotime('+2 days'));
 
     $sql_don = "INSERT INTO orders (
-                    tracking_code, customer_id, goods_type, note, 
-                    source_text, dest_text, weight, length, width, height, 
-                    shipping_fee, cod_amount, status, sla_deadline, 
-                    created_at, updated_at, pod_status, hub_id
-                  ) VALUES (
-                    '$ma_don', $id_kh, '$hang', NULL, 
-                    '$ten_kho', '$dc_nhan', $kg, 0, 0, 0, 
-                    $cuoc_cuoi_cung, $cod, 'pending', '$han_sla', 
-                    '$gio', '$gio', 'pending', $id_kho
-                  )";
+                tracking_code, customer_id, goods_type, note, 
+                source_id, dest_text, weight, length, width, height, 
+                shipping_fee, cod_amount, status, sla_deadline, 
+                created_at, updated_at, pod_status
+              ) VALUES (
+                '$ma_don', $id_kh, '$hang', NULL, 
+                $id_kho, '$dc_nhan', $kg, 0, 0, 0, 
+                $cuoc_cuoi_cung, $cod, 'pending', '$han_sla', 
+                '$gio', '$gio', 'pending'
+              )";
     
     if (mysqli_query($conn, $sql_don)) {
         $id_moi = mysqli_insert_id($conn);
