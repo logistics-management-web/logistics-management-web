@@ -27,17 +27,63 @@ function setActiveMenu(activeItem) {
 if (menuDashboard) {
   menuDashboard.addEventListener("click", function (e) {
     e.preventDefault();
+    console.log("1. Đã click vào menu Dashboard Vận hành");
+
     setActiveMenu(this);
     document.title = "MD Logistic - Dashboard Vận hành";
 
-    fetch("../../../dashboard/Dashboard.php")
-      .then((res) => res.text())
+    const targetUrl = "../../../dashboard/Dashboard.php";
+    console.log("2. Bắt đầu fetch dữ liệu từ:", targetUrl);
+
+    fetch(targetUrl)
+      .then((res) => {
+        console.log("3. Trạng thái HTTP Response:", res.status, res.statusText);
+        if (!res.ok) {
+          console.error(
+            "LỖI: Server trả về mã lỗi không thành công (Có thể sai đường dẫn hoặc lỗi Backend).",
+          );
+        }
+        return res.text();
+      })
       .then((html) => {
+        if (!html || html.trim() === "") {
+          console.warn("CẢNH BÁO: Dữ liệu HTML trả về trống không!");
+        } else {
+          console.log("4. Đã nhận HTML thành công. Độ dài chuỗi:", html.length);
+        }
+
         const mainView = document.getElementById("main-view");
+        if (!mainView) {
+          console.error(
+            "LỖI DOM: Không tìm thấy phần tử <div id='main-view'> để gắn HTML vào.",
+          );
+          return;
+        }
+
+        // Gắn HTML vào DOM
         mainView.innerHTML = html;
-        mainView
-          .querySelectorAll("script")
-          .forEach((s) => window.eval(s.innerText));
+        console.log("5. Đã chèn HTML vào #main-view");
+
+        // Chạy các đoạn script bên trong Dashboard.php (nếu có)
+        const scripts = mainView.querySelectorAll("script");
+        console.log(
+          "6. Tìm thấy",
+          scripts.length,
+          "thẻ <script> cần thực thi.",
+        );
+
+        scripts.forEach((s, index) => {
+          try {
+            window.eval(s.innerText);
+            console.log(`- Đã chạy thành công script thứ ${index + 1}`);
+          } catch (evalErr) {
+            console.error(`- Lỗi khi chạy script thứ ${index + 1}:`, evalErr);
+          }
+        });
+      })
+      .catch((err) => {
+        // Bắt mọi lỗi liên quan đến Network hoặc quá trình phân tích dữ liệu
+        console.error("LỖI FETCH: Không thể tải Dashboard:", err);
       });
   });
 }

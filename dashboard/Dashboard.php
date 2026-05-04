@@ -1,5 +1,6 @@
 <?php
-error_reporting(0);
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
 require_once '../config/config.php';
 global $conn;
 connectDB();
@@ -24,7 +25,8 @@ if ($loai_loc === 'today') {
 }
 
 if ($kho_chon !== '') {
-    $dieu_kien .= " AND source_text = '$kho_chon'";
+    // Tìm trong bảng orders những đơn có source_id khớp với ID của kho được chọn trong bảng hubs
+    $dieu_kien .= " AND source_id IN (SELECT id FROM hubs WHERE name = '$kho_chon')";
 }
 
 $sql_doanh_thu = mysqli_query($conn, "SELECT SUM(shipping_fee) as tong FROM orders WHERE status = 'delivered' AND $dieu_kien");
@@ -132,12 +134,18 @@ $vi_tri_cat = ($trang_hien_tai - 1) * 3;
 
 $loi_hien_thi_tren_trang = array_slice($danh_sach_loi, $vi_tri_cat, 3);
 
-$sql_phan_tich = mysqli_query($conn, "SELECT source_text, COUNT(id) as tong_tre FROM orders WHERE status NOT IN ('delivered', 'cancelled', 'returned') AND sla_deadline < '$bay_gio' AND $dieu_kien AND source_text IS NOT NULL AND source_text != '' GROUP BY source_text ORDER BY tong_tre DESC LIMIT 1");
-$kho_loi_nhieu = ""; $so_luong_loi_kho = 0;
+$sql_phan_tich = mysqli_query($conn, "SELECT source_id, COUNT(id) as tong_tre FROM orders WHERE status NOT IN ('delivered', 'cancelled', 'returned') AND sla_deadline < '$bay_gio' AND $dieu_kien AND source_id IS NOT NULL AND source_id > 0 GROUP BY source_id ORDER BY tong_tre DESC LIMIT 1");
+$kho_loi_nhieu = "";
+$so_luong_loi_kho = 0;
+
 if ($sql_phan_tich && mysqli_num_rows($sql_phan_tich) > 0) {
     $kq_pt = mysqli_fetch_assoc($sql_phan_tich);
-    $kho_loi_nhieu = $kq_pt['source_text'];
     $so_luong_loi_kho = $kq_pt['tong_tre'];
+    $id_kho_loi = (int)$kq_pt['source_id'];
+    $kq_ten_kho = mysqli_query($conn, "SELECT name FROM hubs WHERE id = $id_kho_loi");
+    if ($kq_ten_kho && mysqli_num_rows($kq_ten_kho) > 0) {
+        $kho_loi_nhieu = mysqli_fetch_assoc($kq_ten_kho)['name'];
+    }
 }
 ?>
 
