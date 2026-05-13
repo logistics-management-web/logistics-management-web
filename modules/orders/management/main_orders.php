@@ -203,10 +203,55 @@ if (!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true) {
     </div>
 </div>
 
-<!-- MODAL FILTER -->
-<div class="modal-overlay" id="filter-overlay"></div>
+<div class="modal-overlay" id="filter-overlay" onclick="dongModalLoc()"></div>
 <div class="modal-box" id="filter-box" style="max-width: 500px;">
-    <!-- giữ nguyên phần modal như cũ -->
+    <div class="modal-header clearfix">
+        <div class="modal-title" style="float: left; font-size: 20px">
+            <i class="fa-solid fa-filter text-blue"></i> Lọc nâng cao
+        </div>
+        <div style="float: right">
+            <i class="fa-solid fa-xmark modal-close-btn" onclick="dongModalLoc()" style="font-size: 20px; cursor: pointer;"></i>
+        </div>
+    </div>
+
+    <div class="modal-body">
+        <div class="form-row clearfix">
+            <div class="form-col-50">
+                <div class="form-group">
+                    <label class="form-label">Từ ngày</label>
+                    <input type="date" id="filter-date-from" class="form-control" />
+                </div>
+            </div>
+            <div class="form-col-50">
+                <div class="form-group">
+                    <label class="form-label">Đến ngày</label>
+                    <input type="date" id="filter-date-to" class="form-control" />
+                </div>
+            </div>
+        </div>
+
+        <div class="form-row clearfix">
+            <div class="form-col-50">
+                <div class="form-group">
+                    <label class="form-label">COD Tối thiểu (VNĐ)</label>
+                    <input type="number" id="filter-cod-min" class="form-control" placeholder="0" />
+                </div>
+            </div>
+            <div class="form-col-50">
+                <div class="form-group">
+                    <label class="form-label">COD Tối đa (VNĐ)</label>
+                    <input type="number" id="filter-cod-max" class="form-control" placeholder="Không giới hạn" />
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-footer">
+        <button class="btn btn-outline" onclick="dongModalLoc()">Hủy bỏ</button>
+        <button class="btn btn-primary" onclick="apDungLoc()">
+            <i class="fa-solid fa-check"></i> Áp dụng
+        </button>
+    </div>
 </div>
 
 <div id="sub-container"></div>
