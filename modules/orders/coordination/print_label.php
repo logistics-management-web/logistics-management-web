@@ -1,6 +1,6 @@
 <?php
 session_start();
-require_once "../../../config/db.php";
+require_once "../../../config/config.php";
 connectDB();
 global $conn;
 
@@ -9,7 +9,13 @@ if (!isset($_SESSION["loggedin"]) || !isset($_GET['id'])) {
 }
 
 $order_id = (int)$_GET['id'];
-$sql = "SELECT tracking_code, source_text, dest_text, weight, cod_amount FROM orders WHERE id = ?";
+
+// Lấy thông tin đơn hàng
+$sql = "SELECT o.tracking_code, h.name as source_name, o.dest_text, o.weight, o.cod_amount 
+        FROM orders o 
+        LEFT JOIN hubs h ON o.source_id = h.id 
+        WHERE o.id = ?";
+        
 $stmt = mysqli_prepare($conn, $sql);
 mysqli_stmt_bind_param($stmt, "i", $order_id);
 mysqli_stmt_execute($stmt);
@@ -24,7 +30,7 @@ if (!$order) die("Không tìm thấy đơn hàng.");
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <title>In Tem - <?= $order['tracking_code'] ?></title>
+    <title>In Tem - <?= htmlspecialchars($order['tracking_code']) ?></title>
     <style>
         /* Thiết kế kích thước tem chuẩn (ví dụ 100x150mm) */
         @page { size: 100mm 150mm; margin: 0; }
@@ -36,13 +42,15 @@ if (!$order) die("Không tìm thấy đơn hàng.");
         .info-title { font-size: 12px; color: #555; text-transform: uppercase; }
         .info-content { font-size: 16px; font-weight: bold; }
         .cod-box { background-color: #000; color: #fff; text-align: center; padding: 10px; font-size: 20px; font-weight: bold; border-radius: 4px; }
-        .barcode-placeholder { height: 80px; border: 1px solid #000; margin-top: 20px; display: flex; align-items: center; justify-content: center; font-family: monospace; }
+        
+        /* Cập nhật style cho khu vực chứa mã vạch */
+        .barcode-container { margin-top: 20px; text-align: center; }
         
         /* Tự động kích hoạt hộp thoại in khi trang load xong */
         @media print { .no-print { display: none; } }
     </style>
 </head>
-<body onload="window.print()">
+<body>
     <div class="no-print" style="text-align:center; margin-bottom: 20px;">
         <button onclick="window.print()" style="padding:10px 20px; cursor:pointer;">Tiến hành In</button>
     </div>
@@ -50,12 +58,12 @@ if (!$order) die("Không tìm thấy đơn hàng.");
     <div class="label-container">
         <div class="header">
             <h2>LOGISCORE</h2>
-            <div class="tracking"><?= $order['tracking_code'] ?></div>
+            <div class="tracking"><?= htmlspecialchars($order['tracking_code']) ?></div>
         </div>
         
         <div class="info-block">
             <div class="info-title">Người gửi (Từ)</div>
-            <div class="info-content"><?= htmlspecialchars($order['source_text']) ?></div>
+            <div class="info-content"><?= htmlspecialchars($order['source_name'] ?? 'Hệ thống MD Logistic') ?></div>
         </div>
         
         <div class="info-block">
@@ -66,7 +74,7 @@ if (!$order) die("Không tìm thấy đơn hàng.");
         <div class="info-block" style="display: flex; justify-content: space-between;">
             <div>
                 <span class="info-title">Khối lượng:</span> <br>
-                <span class="info-content"><?= $order['weight'] ?> kg</span>
+                <span class="info-content"><?= htmlspecialchars($order['weight']) ?> kg</span>
             </div>
             <div>
                 <span class="info-title">Ngày in:</span> <br>
@@ -80,10 +88,32 @@ if (!$order) die("Không tìm thấy đơn hàng.");
         </div>
         <?php endif; ?>
 
-        <div class="barcode-placeholder">
-            || | | || ||| | || | ||| || ||<br>
-            <?= $order['tracking_code'] ?>
+        <div class="barcode-container">
+            <svg id="barcode"></svg>
         </div>
     </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
+    
+    <script>
+        // 2. Lấy tracking code từ PHP và truyền vào Javascript
+        const trackingCode = "<?= htmlspecialchars($order['tracking_code']) ?>";
+
+        // 3. Khởi tạo mã vạch
+        JsBarcode("#barcode", trackingCode, {
+            format: "CODE128",  // Chuẩn mã vạch dùng trong vận chuyển
+            lineColor: "#000000",
+            width: 2,           // Độ rộng của vạch
+            height: 70,         // Chiều cao của vạch
+            displayValue: true, // Hiển thị mã số bên dưới vạch
+            fontSize: 18,
+            margin: 0
+        });
+
+        // 4. Kích hoạt lệnh in sau khi trang và mã vạch đã tải xong
+        window.onload = function() {
+            window.print();
+        };
+    </script>
 </body>
 </html>
