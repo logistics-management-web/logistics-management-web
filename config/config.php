@@ -21,4 +21,5 @@ function disconnectDB() {
         mysqli_close($conn);
     }
 }
+require_once __DIR__ . '/permissions.php';
 ?>

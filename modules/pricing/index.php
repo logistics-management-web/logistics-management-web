@@ -1,6 +1,12 @@
 <?php
 require "rates/rates.php";
 
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] == 'update_pricing') {
+    // Chỉ accountant mới có quyền update bảng giá
+    if (!check_permission('pricing', 'edit')) {
+        die("Hành động bị cấm: Bạn không có quyền thay đổi cấu hình cước phí hệ thống.");
+    }
+}
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['submit_add_rate'])) {
     if (rateAdd($_POST)) echo "<script> window.location.href='index.php';</script>";
     else echo "<script>alert('Lỗi: Không thể thêm bảng giá.');</script>";

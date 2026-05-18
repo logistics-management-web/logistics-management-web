@@ -10,6 +10,17 @@ date_default_timezone_set('Asia/Ho_Chi_Minh');
 
 $action = $_POST['action'] ?? '';
 
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
+    
+    // Kiểm tra quyền ghi trước khi thực hiện các lệnh SQL
+    if ($_POST['action'] == 'create_order' || $_POST['action'] == 'edit_order') {
+        if (!check_permission('orders', 'edit')) {
+            echo json_encode(['status' => 'error', 'message' => 'LỖI BẢO MẬT: Tài khoản của bạn không được cấp quyền chỉnh sửa dữ liệu đơn hàng này!']);
+            exit; // Chặn đứng câu lệnh SQL INSERT/UPDATE phía dưới
+        }
+    }
+}
+
 if ($action === 'check_phone') {
     $phone = mysqli_real_escape_string($conn, $_POST['phone']);
     $sql = "SELECT full_name FROM customers WHERE phone = '$phone' LIMIT 1";
