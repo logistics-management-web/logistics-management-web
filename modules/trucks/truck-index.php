@@ -231,7 +231,7 @@ $drivers = driverSelectionList();
             </div>
             <div style="float: right; margin-top: 20px;">
                 <?php $can_edit_trucks = check_permission('trucks', 'edit'); ?>
-                <button class="btn btn-primary" onclick="openAddTruckModal()" <?= !$can_edit_trucks ? 'disabled style="opacity: 0.5; cursor: not-allowed;" title="Chỉ Quản lý đội xe mới được thao tác"' : ''; ?>>
+                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addTruckModal" <?= !$can_edit_trucks ? 'disabled style="opacity: 0.5; cursor: not-allowed;" title="Chỉ Quản lý đội xe mới được thao tác"' : ''; ?>>
                     <i class="fa-solid fa-plus"></i> Thêm Xe Mới
                 </button>
             </div>
