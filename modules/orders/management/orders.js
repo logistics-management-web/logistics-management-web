@@ -50,6 +50,11 @@ window.moChiTietDon = function (id) {
 };
 
 window.moFormTaoDon = function () {
+  if (window.UserPermissions && window.UserPermissions.canEditOrders === false) {
+    alert("Lỗi phân quyền: Bạn không có quyền tạo đơn hàng mới!");
+    return; // Dừng lại, không cho mở Form
+  }
+
   document.getElementById("create-order-overlay").classList.add("open");
   document.getElementById("create-order-box").classList.add("open");
 };

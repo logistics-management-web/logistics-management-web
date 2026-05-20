@@ -1,6 +1,7 @@
 <?php
 error_reporting(E_ERROR | E_PARSE);
 require_once '../../../config/config.php';
+$can_edit_orders = check_permission('orders', 'edit');
 global $conn;
 connectDB();
 ob_clean();
@@ -72,7 +73,9 @@ $res_table = mysqli_query($conn, $sql_table);
             <p class="text-gray">Quản lý, theo dõi và điều phối đơn hàng trên toàn hệ thống.</p>
         </div>
         <div class="page-actions">
-            <button class="btn btn-primary" onclick="moFormTaoDon()"><i class="fa-solid fa-plus"></i> Tạo đơn mới</button>
+            <button class="btn btn-primary" <?= !$can_edit_orders ? 'disabled style="opacity: 0.5; cursor: not-allowed;" title="Vai trò của bạn không có quyền tạo đơn"' : 'onclick="moFormTaoDon()"' ?>>
+                <i class="fa-solid fa-plus"></i> Tạo đơn mới
+            </button>
         </div>
     </div>
 

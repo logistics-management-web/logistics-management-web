@@ -7,6 +7,11 @@ $rate_info = rateGetById($rate_id);
 $rate_code = $rate_info['code_rates'];
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    if (!check_permission('pricing', 'edit')) {
+        echo "<script>alert('Lỗi bảo mật: Bạn không có quyền thao tác trên tuyến đường và bậc giá!'); window.location.href='rate_details.php?id=$rate_id';</script>";
+        exit;
+    }
+
     if (isset($_POST['submit_add_route'])) routeAdd($_POST);
     elseif (isset($_POST['submit_edit_route'])) routeEdit($_POST);
     elseif (isset($_POST['submit_delete_route'])) routeDelete($_POST);
@@ -19,6 +24,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     exit();
 }
 $routes = routeList($rate_id);
+$can_edit_pricing = check_permission('pricing', 'edit');
 ?>
 <!DOCTYPE html>
 <html lang="vi">
@@ -45,10 +51,12 @@ $routes = routeList($rate_id);
                 </div>
             </div>
 
+            <?php if ($can_edit_pricing): ?>
             <button class="btn btn-primary btn-with-icon" onclick="openModal('addRouteModal')">
                 <i class="fa-solid fa-plus"></i>
                 <span>Thêm tuyến đường</span>
             </button>
+            <?php endif; ?>
         </div>
 
         <?php if (empty($routes)): ?>
@@ -73,17 +81,19 @@ $routes = routeList($rate_id);
                             </span>
                         </div>
                         <div>
-                            <button class="btn btn-sm btn-edit btn-edit-route"
-                                    data-routeid="<?php echo $route['id']; ?>"
-                                    data-src="<?php echo htmlspecialchars($src_text); ?>"
-                                    data-dst="<?php echo htmlspecialchars($dst_text); ?>"
-                                    data-bw="<?php echo $route['base_weight']; ?>"
-                                    data-bp="<?php echo $route['base_price']; ?>">Sửa tuyến</button>
-                            <button type="button" class="btn btn-sm btn-danger btn-delete-route"
-                                    data-routeid="<?php echo $route['id']; ?>"
-                                    data-name="<?php echo htmlspecialchars($src_text . ' &rarr; ' . $dst_text); ?>">
-                            Xóa tuyến
-                            </button>
+                            <?php if ($can_edit_pricing): ?>
+                                <button class="btn btn-sm btn-edit btn-edit-route"
+                                        data-routeid="<?php echo $route['id']; ?>"
+                                        data-src="<?php echo htmlspecialchars($src_text); ?>"
+                                        data-dst="<?php echo htmlspecialchars($dst_text); ?>"
+                                        data-bw="<?php echo $route['base_weight']; ?>"
+                                        data-bp="<?php echo $route['base_price']; ?>">Sửa tuyến</button>
+                                <button type="button" class="btn btn-sm btn-danger btn-delete-route"
+                                        data-routeid="<?php echo $route['id']; ?>"
+                                        data-name="<?php echo htmlspecialchars($src_text . ' &rarr; ' . $dst_text); ?>">
+                                Xóa tuyến
+                                </button>
+                            <?php endif; ?>
                         </div>
                     </div>
 
@@ -108,20 +118,24 @@ $routes = routeList($rate_id);
                                 <td><?php echo $tier['step_weight']; ?></td>
                                 <td style="color: #4318ff;"><strong><?php echo number_format($tier['step_price']); ?></strong></td>
                                 <td style="text-align: right;">
-                                    <button class="btn btn-sm btn-edit btn-edit-tier"
-                                            data-tierid="<?php echo $tier['id']; ?>"
-                                            data-from="<?php echo $tier['from_weight']; ?>"
-                                            data-to="<?php echo $tier['to_weight']; ?>"
-                                            data-stepw="<?php echo $tier['step_weight']; ?>"
-                                            data-stepp="<?php echo $tier['step_price']; ?>">Sửa</button>
-                                    <?php
-                                    $tier_name = 'từ ' . $tier['from_weight'] . 'kg' . (!empty($tier['to_weight']) ? ' đến ' . $tier['to_weight'] . 'kg' : ' trở lên');
-                                    ?>
-                                    <button type="button" class="btn btn-sm btn-danger btn-delete-tier"
-                                            data-tierid="<?php echo $tier['id']; ?>"
-                                            data-name="<?php echo htmlspecialchars($tier_name); ?>">
-                                        Xóa
-                                    </button>
+                                    <?php if ($can_edit_pricing): ?>
+                                        <button class="btn btn-sm btn-edit btn-edit-tier"
+                                                data-tierid="<?php echo $tier['id']; ?>"
+                                                data-from="<?php echo $tier['from_weight']; ?>"
+                                                data-to="<?php echo $tier['to_weight']; ?>"
+                                                data-stepw="<?php echo $tier['step_weight']; ?>"
+                                                data-stepp="<?php echo $tier['step_price']; ?>">Sửa</button>
+                                        <?php
+                                        $tier_name = 'từ ' . $tier['from_weight'] . 'kg' . (!empty($tier['to_weight']) ? ' đến ' . $tier['to_weight'] . 'kg' : ' trở lên');
+                                        ?>
+                                        <button type="button" class="btn btn-sm btn-danger btn-delete-tier"
+                                                data-tierid="<?php echo $tier['id']; ?>"
+                                                data-name="<?php echo htmlspecialchars($tier_name); ?>">
+                                            Xóa
+                                        </button>
+                                    <?php else: ?>
+                                        <span style="font-size: 12px; color: #a3aed1; font-style: italic;">Chỉ xem</span>
+                                    <?php endif; ?>
                                 </td>
                             </tr>
                             <?php endforeach; ?>
@@ -141,9 +155,11 @@ $routes = routeList($rate_id);
                         }
                         ?>
                         <?php if (!$is_max_reached): ?>
-                            <button class="btn btn-sm btn-secondary btn-add-tier"
-                                    data-routeid="<?php echo $route['id']; ?>"
-                                    data-nextfrom="<?php echo $next_from_weight; ?>">+ Thêm bậc giá</button>
+                            <?php if ($can_edit_pricing): ?>
+                                <button class="btn btn-sm btn-secondary btn-add-tier"
+                                        data-routeid="<?php echo $route['id']; ?>"
+                                        data-nextfrom="<?php echo $next_from_weight; ?>">+ Thêm bậc giá</button>
+                            <?php endif; ?>
                         <?php else: ?>
                             <span style="color: #ef4444; font-size: 13px;">Tuyến đường đã đạt mức Max.</span>
                         <?php endif; ?>

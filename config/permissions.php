@@ -32,7 +32,7 @@ function check_permission($module, $action = 'view') {
             'edit' => ['dispatcher'] // Chỉ Điều phối viên được gom chuyến, gán tài xế
         ],
         'warehouse' => [
-            'view' => ['hub_manager'],
+            'view' => ['hub_manager', 'accountant'],
             'edit' => ['hub_manager'] // Chỉ Trưởng bưu cục được chỉnh sửa thông số kho
         ],
         'trucks' => [

@@ -2,6 +2,11 @@
 require "warehouse.php";
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    if (!check_permission('warehouse', 'edit')) {
+        echo "<script>alert('Lỗi bảo mật: Bạn chỉ có quyền xem, không được phép thao tác!'); window.location.href='index.php';</script>";
+        exit;
+    }
+
     $success = false;
     $error_msg = "Đã xảy ra lỗi.";
 
@@ -67,6 +72,7 @@ disconnectDB();
                 </div>
                 <div>
                     <?php $can_edit_wh = check_permission('warehouse', 'edit'); ?>
+
                     <button class="btn btn-primary" onclick="openModal('addWarehouseModal')" <?= !$can_edit_wh ? 'disabled style="opacity: 0.5; cursor: not-allowed;"' : ''; ?>>
                         <i class="fa-solid fa-plus"></i> Thêm Kho/Hub Mới
                     </button>
@@ -166,35 +172,39 @@ disconnectDB();
                                         <?php endif; ?>
                                     </td>
                                     <td style="text-align: right;">
-                                        <button class="btn btn-sm btn-edit btn-edit-warehouse"
-                                            data-id="<?php echo $hub['id']; ?>"
-                                            data-code="<?php echo htmlspecialchars($hub['code']); ?>"
-                                            data-name="<?php echo htmlspecialchars($hub['name']); ?>"
-                                            data-type="<?php echo htmlspecialchars($hub['type']); ?>"
-                                            data-region="<?php echo htmlspecialchars($hub['region']); ?>"
-                                            data-address="<?php echo htmlspecialchars($hub['address']); ?>"
-                                            data-opentime="<?php echo $hub['open_time']; ?>"
-                                            data-closetime="<?php echo $hub['close_time']; ?>"
-                                            data-capacity="<?php echo $hub['max_capacity']; ?>"
-                                            data-manager="<?php echo $hub['manager_id']; ?>">
-                                            Sửa
-                                        </button>
-
-                                        <form method="POST" action="index.php" style="display:inline-block; margin:0;">
-                                            <input type="hidden" name="toggle_id" value="<?php echo $hub['id']; ?>">
-                                            <input type="hidden" name="current_status" value="<?php echo $hub['is_active']; ?>">
-
-                                            <button type="submit" name="submit_toggle_status"
-                                                class="btn btn-sm <?php echo $hub['is_active'] ? 'btn-warning' : 'btn-info'; ?>">
-                                                <?php echo $hub['is_active'] ? 'Tắt' : 'Bật'; ?>
+                                        <?php if ($can_edit_wh): ?>
+                                            <button class="btn btn-sm btn-edit btn-edit-warehouse"
+                                                data-id="<?php echo $hub['id']; ?>"
+                                                data-code="<?php echo htmlspecialchars($hub['code']); ?>"
+                                                data-name="<?php echo htmlspecialchars($hub['name']); ?>"
+                                                data-type="<?php echo htmlspecialchars($hub['type']); ?>"
+                                                data-region="<?php echo htmlspecialchars($hub['region']); ?>"
+                                                data-address="<?php echo htmlspecialchars($hub['address']); ?>"
+                                                data-opentime="<?php echo $hub['open_time']; ?>"
+                                                data-closetime="<?php echo $hub['close_time']; ?>"
+                                                data-capacity="<?php echo $hub['max_capacity']; ?>"
+                                                data-manager="<?php echo $hub['manager_id']; ?>">
+                                                Sửa
                                             </button>
-                                        </form>
 
-                                        <button type="button" class="btn btn-sm btn-danger btn-delete-warehouse"
-                                            data-id="<?php echo $hub['id']; ?>"
-                                            data-name="<?php echo htmlspecialchars($hub['name']); ?>">
-                                            Xóa
-                                        </button>
+                                            <form method="POST" action="index.php" style="display:inline-block; margin:0;">
+                                                <input type="hidden" name="toggle_id" value="<?php echo $hub['id']; ?>">
+                                                <input type="hidden" name="current_status" value="<?php echo $hub['is_active']; ?>">
+
+                                                <button type="submit" name="submit_toggle_status"
+                                                    class="btn btn-sm <?php echo $hub['is_active'] ? 'btn-warning' : 'btn-info'; ?>">
+                                                    <?php echo $hub['is_active'] ? 'Tắt' : 'Bật'; ?>
+                                                </button>
+                                            </form>
+
+                                            <button type="button" class="btn btn-sm btn-danger btn-delete-warehouse"
+                                                data-id="<?php echo $hub['id']; ?>"
+                                                data-name="<?php echo htmlspecialchars($hub['name']); ?>">
+                                                Xóa
+                                            </button>
+                                        <?php else: ?>
+                                            <span style="color: #a3aed1; font-size: 13px; font-style: italic;">Chỉ xem</span>
+                                        <?php endif; ?>
                                     </td>
                                 </tr>
                             <?php endforeach; else: ?>

@@ -12,11 +12,18 @@ $action = $_POST['action'] ?? '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
     
-    // Kiểm tra quyền ghi trước khi thực hiện các lệnh SQL
-    if ($_POST['action'] == 'create_order' || $_POST['action'] == 'edit_order') {
+    if (in_array($_POST['action'], ['create', 'update', 'delete'])) {
         if (!check_permission('orders', 'edit')) {
-            echo json_encode(['status' => 'error', 'message' => 'LỖI BẢO MẬT: Tài khoản của bạn không được cấp quyền chỉnh sửa dữ liệu đơn hàng này!']);
+            echo json_encode(['status' => 'error', 'message' => 'LỖI BẢO MẬT: Tài khoản của bạn không được cấp quyền tạo hoặc chỉnh sửa đơn hàng!']);
             exit; // Chặn đứng câu lệnh SQL INSERT/UPDATE phía dưới
+        }
+    }
+
+    // Chặn thêm hành động cập nhật trạng thái (Dành cho sau này)
+    if ($_POST['action'] == 'update_status') {
+        if (!check_permission('orders', 'update_status')) {
+            echo json_encode(['status' => 'error', 'message' => 'LỖI BẢO MẬT: Tài khoản của bạn không được cấp quyền đổi trạng thái đơn!']);
+            exit;
         }
     }
 }

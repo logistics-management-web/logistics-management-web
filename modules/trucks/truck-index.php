@@ -2,15 +2,14 @@
 date_default_timezone_set('Asia/Ho_Chi_Minh');
 require_once "truck.php";
 
-if (isset($_GET['delete_driver_id'])) {
-    // Chặn đứng kế toán hoặc điều phối viên cố ý xoá dữ liệu tài xế
-    if (!check_permission('trucks', 'edit')) {
-        echo "<script>alert('Từ chối yêu cầu: Bạn không có quyền xóa phương tiện/tài xế!'); window.location.href='index.php';</script>";
-        exit;
-    }
-}
-
+// CHẶN BẢO MẬT BACKEND
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    // Bắt buộc phải có quyền edit mới được chạy các lệnh POST Thêm/Sửa/Xóa/Tắt bật
+    if (!check_permission('trucks', 'edit')) {
+        echo "<script>alert('Lỗi bảo mật: Bạn chỉ có quyền xem, không được phép thao tác!'); window.location.href='truck-index.php';</script>";
+        exit();
+    }
+
     if (isset($_POST['submit_add_truck'])) {
         if (truckAdd($_POST)) {
             echo "<script>window.location.href='truck-index.php';</script>";
@@ -231,6 +230,7 @@ $drivers = driverSelectionList();
             </div>
             <div style="float: right; margin-top: 20px;">
                 <?php $can_edit_trucks = check_permission('trucks', 'edit'); ?>
+
                 <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addTruckModal" <?= !$can_edit_trucks ? 'disabled style="opacity: 0.5; cursor: not-allowed;" title="Chỉ Quản lý đội xe mới được thao tác"' : ''; ?>>
                     <i class="fa-solid fa-plus"></i> Thêm Xe Mới
                 </button>
@@ -275,17 +275,19 @@ $drivers = driverSelectionList();
                                     </span>
                                 </td>
                                 <td>
-                                    <button class="btn-icon text-blue" data-bs-toggle="modal" data-bs-target="#editTruckModal"
-                                        data-id="<?php echo $tr['id']; ?>"
-                                        data-plate="<?php echo htmlspecialchars($tr['plate_number']); ?>"
-                                        data-type="<?php echo htmlspecialchars($tr['truck_type']); ?>"
-                                        data-capacity="<?php echo $tr['capacity_kg']; ?>"
-                                        data-brand="<?php echo htmlspecialchars($tr['brand_model']); ?>"
-                                        data-driver="<?php echo $tr['main_driver_id']; ?>"
-                                        data-doc-type="<?php echo htmlspecialchars($tr['document_type']); ?>"
-                                        data-doc-num="<?php echo htmlspecialchars($tr['document_number']); ?>"
-                                        data-issue="<?php echo $tr['issue_date']; ?>"
-                                        data-expire="<?php echo $tr['expiry_date']; ?>">Sửa</button>
+                                    <?php if ($can_edit_trucks): ?>
+                                        <button class="btn-icon text-blue" data-bs-toggle="modal" data-bs-target="#editTruckModal"
+                                            data-id="<?php echo $tr['id']; ?>"
+                                            data-plate="<?php echo htmlspecialchars($tr['plate_number']); ?>"
+                                            data-type="<?php echo htmlspecialchars($tr['truck_type']); ?>"
+                                            data-capacity="<?php echo $tr['capacity_kg']; ?>"
+                                            data-brand="<?php echo htmlspecialchars($tr['brand_model']); ?>"
+                                            data-driver="<?php echo $tr['main_driver_id']; ?>"
+                                            data-doc-type="<?php echo htmlspecialchars($tr['document_type']); ?>"
+                                            data-doc-num="<?php echo htmlspecialchars($tr['document_number']); ?>"
+                                            data-issue="<?php echo $tr['issue_date']; ?>"
+                                            data-expire="<?php echo $tr['expiry_date']; ?>">Sửa</button>
+                                    <?php endif; ?>
 
                                     <button class="btn-icon text-blue" data-bs-toggle="modal"
                                         data-bs-target="#viewDocumentModal" data-plate="<?php echo $tr['plate_number']; ?>"
@@ -294,21 +296,25 @@ $drivers = driverSelectionList();
                                         data-issue="<?php echo $tr['issue_date']; ?>"
                                         data-expire="<?php echo $tr['expiry_date']; ?>" style="color: #06ebd8;">Giấy tờ</button>
 
-                                    <form method="POST" style="display:inline-block;">
-                                        <input type="hidden" name="toggle_id" value="<?php echo $tr['id']; ?>">
-                                        <input type="hidden" name="current_status" value="<?php echo $tr['status']; ?>">
-                                        <button type="submit" name="submit_toggle_status"
-                                            class="btn-icon <?php echo ($tr['status'] == 'active') ? 'text-gray' : 'text-bold text-blue'; ?>">
-                                            <?php echo ($tr['status'] == 'active') ? 'Tắt' : 'Bật'; ?>
-                                        </button>
-                                    </form>
+                                    <?php if ($can_edit_trucks): ?>
+                                        <form method="POST" style="display:inline-block;">
+                                            <input type="hidden" name="toggle_id" value="<?php echo $tr['id']; ?>">
+                                            <input type="hidden" name="current_status" value="<?php echo $tr['status']; ?>">
+                                            <button type="submit" name="submit_toggle_status"
+                                                class="btn-icon <?php echo ($tr['status'] == 'active') ? 'text-gray' : 'text-bold text-blue'; ?>">
+                                                <?php echo ($tr['status'] == 'active') ? 'Tắt' : 'Bật'; ?>
+                                            </button>
+                                        </form>
 
-                                    <form method="POST" style="display:inline-block;"
-                                        onsubmit="return confirm('Xác nhận xóa xe và toàn bộ dữ liệu liên quan?');">
-                                        <input type="hidden" name="delete_id" value="<?php echo $tr['id']; ?>">
-                                        <button type="submit" name="submit_delete_truck" class="btn-icon"
-                                            style="color: #ef4444;">Xóa</button>
-                                    </form>
+                                        <form method="POST" style="display:inline-block;"
+                                            onsubmit="return confirm('Xác nhận xóa xe và toàn bộ dữ liệu liên quan?');">
+                                            <input type="hidden" name="delete_id" value="<?php echo $tr['id']; ?>">
+                                            <button type="submit" name="submit_delete_truck" class="btn-icon"
+                                                style="color: #ef4444;">Xóa</button>
+                                        </form>
+                                    <?php else: ?>
+                                        <span class="text-gray" style="font-size: 12px; font-style: italic; margin-left: 5px;">(Chỉ xem)</span>
+                                    <?php endif; ?>
                                 </td>
                             </tr>
                         <?php endforeach; else: ?>

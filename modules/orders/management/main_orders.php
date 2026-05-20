@@ -341,7 +341,13 @@ require_once '../../../config/config.php';
             }
         });
     </script>
-
+    <script>
+        // Truyền quyền xuống cho file orders.js để nó tự quyết định ẩn/hiện nút
+        window.UserPermissions = {
+            canEditOrders: <?= check_permission('orders', 'edit') ? 'true' : 'false' ?>,
+            canUpdateStatus: <?= check_permission('orders', 'update_status') ? 'true' : 'false' ?>
+        };
+    </script>
 </body>
 
 </html>

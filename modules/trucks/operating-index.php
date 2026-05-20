@@ -3,6 +3,11 @@ date_default_timezone_set('Asia/Ho_Chi_Minh');
 require_once "truck.php"; 
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    if (!check_permission('trucks', 'edit')) {
+        echo "<script>alert('Lỗi bảo mật: Bạn chỉ có quyền xem nhật ký, không được phép thao tác!'); window.location.href='operating-index.php';</script>";
+        exit();
+    }
+
     if (isset($_POST['submit_add_log'])) {
         if (operatingLogAdd($_POST)) { echo "<script>window.location.href='operating-index.php';</script>"; exit(); }
     }
@@ -86,9 +91,12 @@ $all_drivers = driverSelectionList();
             <h1 class="text-bold" style="font-size: 32px;">Nhật ký Vận hành xe</h1>
         </div>
         <div style="float: right; margin-top: 20px;">
-            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addLogModal">
-                + Thêm nhật ký mới
-            </button>
+            <?php $can_edit_trucks = check_permission('trucks', 'edit'); ?>
+            <?php if ($can_edit_trucks): ?>
+                <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addLogModal">
+                    + Thêm nhật ký mới
+                </button>
+            <?php endif; ?>
         </div>
     </div>
 
@@ -134,19 +142,23 @@ $all_drivers = driverSelectionList();
                             <?php endif; ?>
                         </td>
                         <td>
-                            <button class="btn-icon text-blue" data-bs-toggle="modal" data-bs-target="#editLogModal"
-                                data-id="<?php echo $log['id']; ?>"
-                                data-truck="<?php echo $log['truck_id']; ?>"
-                                data-driver="<?php echo $log['driver_id']; ?>"
-                                data-type="<?php echo htmlspecialchars($log['event_type']); ?>"
-                                data-desc="<?php echo htmlspecialchars($log['description']); ?>"
-                                data-cost="<?php echo $log['cost']; ?>"
-                                data-date="<?php echo $log['date_logged']; ?>">Sửa</button>
+                            <?php if ($can_edit_trucks): ?>
+                                <button class="btn-icon text-blue" data-bs-toggle="modal" data-bs-target="#editLogModal"
+                                    data-id="<?php echo $log['id']; ?>"
+                                    data-truck="<?php echo $log['truck_id']; ?>"
+                                    data-driver="<?php echo $log['driver_id']; ?>"
+                                    data-type="<?php echo htmlspecialchars($log['event_type']); ?>"
+                                    data-desc="<?php echo htmlspecialchars($log['description']); ?>"
+                                    data-cost="<?php echo $log['cost']; ?>"
+                                    data-date="<?php echo $log['date_logged']; ?>">Sửa</button>
 
-                            <form method="POST" style="display:inline-block;" onsubmit="return confirm('Xác nhận xóa nhật ký này?');">
-                                <input type="hidden" name="delete_id" value="<?php echo $log['id']; ?>">
-                                <button type="submit" name="submit_delete_log" class="btn-icon" style="color: #ef4444;">Xóa</button>
-                            </form>
+                                <form method="POST" style="display:inline-block;" onsubmit="return confirm('Xác nhận xóa nhật ký này?');">
+                                    <input type="hidden" name="delete_id" value="<?php echo $log['id']; ?>">
+                                    <button type="submit" name="submit_delete_log" class="btn-icon" style="color: #ef4444;">Xóa</button>
+                                </form>
+                            <?php else: ?>
+                                <span class="text-gray" style="font-size: 12px; font-style: italic;">Chỉ xem</span>
+                            <?php endif; ?>
                         </td>
                     </tr>
                 <?php endforeach; else: ?>

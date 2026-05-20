@@ -8,6 +8,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     }
 }
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['submit_add_rate'])) {
+    if (!check_permission('pricing', 'edit')) {
+        echo "<script>alert('Lỗi bảo mật: Bạn chỉ được xem biểu phí, không có quyền chỉnh sửa!'); window.location.href='index.php';</script>";
+        exit;
+    }
     if (rateAdd($_POST)) echo "<script> window.location.href='index.php';</script>";
     else echo "<script>alert('Lỗi: Không thể thêm bảng giá.');</script>";
 }
@@ -54,9 +58,11 @@ disconnectDB();
                 <p>Quản lý các phiên bản bảng giá cước phí vận chuyển.</p>
             </div>
             <div>
-                <button type="button" class="btn btn-primary" onclick="openModal('addRateModal')">
-                    + Thêm bảng giá mới
-                </button>
+                <?php if (check_permission('pricing', 'edit')): ?>
+                    <button type="button" class="btn btn-primary" onclick="openModal('addRateModal')">
+                        + Thêm bảng giá mới
+                    </button>
+                <?php endif; ?>
             </div>
         </div>
 
@@ -119,22 +125,27 @@ disconnectDB();
                                 <?php endif; ?>
                             </td>
                             <td style="text-align: right;">
-                                <button class="btn btn-sm btn-edit btn-edit-rate" 
-                                    data-id="<?php echo $rate['id']; ?>"
-                                    data-code="<?php echo htmlspecialchars($rate['code_rates']); ?>"
-                                    data-name="<?php echo htmlspecialchars($rate['name']); ?>"
-                                    data-version="<?php echo htmlspecialchars($rate['version']); ?>"
-                                    data-status="<?php echo htmlspecialchars($rate['status']); ?>"
-                                    data-effectivedate="<?php echo $rate['effective_date']; ?>">
-                                    Sửa
-                                </button>
+                                <?php if (check_permission('pricing', 'edit')): ?>
+                                    <button class="btn btn-sm btn-edit btn-edit-rate" 
+                                        data-id="<?php echo $rate['id']; ?>"
+                                        data-code="<?php echo htmlspecialchars($rate['code_rates']); ?>"
+                                        data-name="<?php echo htmlspecialchars($rate['name']); ?>"
+                                        data-version="<?php echo htmlspecialchars($rate['version']); ?>"
+                                        data-status="<?php echo htmlspecialchars($rate['status']); ?>"
+                                        data-effectivedate="<?php echo $rate['effective_date']; ?>">
+                                        Sửa
+                                    </button>
+                                <?php endif; ?>
+                                
                                 <a href="rates/rate_details.php?id=<?php echo $rate['id']; ?>" class="btn btn-sm btn-info">Chi tiết</a>
                                 
-                                <button type="button" class="btn btn-sm btn-danger btn-delete-rate" 
-                                        data-id="<?php echo $rate['id']; ?>"
-                                        data-name="<?php echo htmlspecialchars($rate['name']); ?>">
-                                    Xóa
-                                </button>
+                                <?php if (check_permission('pricing', 'edit')): ?>
+                                    <button type="button" class="btn btn-sm btn-danger btn-delete-rate" 
+                                            data-id="<?php echo $rate['id']; ?>"
+                                            data-name="<?php echo htmlspecialchars($rate['name']); ?>">
+                                        Xóa
+                                    </button>
+                                <?php endif; ?>
                             </td>
                         </tr>
                     <?php endforeach; else: ?>

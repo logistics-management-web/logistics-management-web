@@ -22,6 +22,16 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $action = $_POST['action'] ?? '';
     $order_id = $_POST['order_id'] ?? null;
     $is_transaction_active = false;
+    
+    if (in_array($action, ['assign_driver', 'unassign_driver']) && !check_permission('dispatch', 'edit')) {
+        echo "<script>alert('Lỗi: Bạn không có quyền phân công/gỡ tài xế!'); window.location.href='dispatch.php';</script>";
+        exit;
+    }
+    // CHẶN BACKEND TRẠNG THÁI & POD
+    if (in_array($action, ['update_status', 'verify_pod']) && !check_permission('orders', 'update_status')) {
+        echo "<script>alert('Lỗi: Bạn không có quyền cập nhật trạng thái đơn hàng!'); window.location.href='dispatch.php';</script>";
+        exit;
+    }
 
     try {
         if ($action === 'assign_driver' && $order_id) {
@@ -370,6 +380,11 @@ try {
                 <div class="col-lg-4">
                     <div class="sticky-top-card">
                         <?php if ($selected_order): ?>
+                            <?php 
+                            // Khai báo biến kiểm tra quyền cho UI
+                            $can_edit_dispatch = check_permission('dispatch', 'edit');
+                            $can_update_order  = check_permission('orders', 'update_status');
+                            ?>
                             <div class="dash-card detail-card border-top border-primary border-3">
 
                                 <div class="d-flex justify-content-between align-items-center mb-4">
@@ -416,65 +431,68 @@ try {
                                 </div>
 
                                 <div class="mb-4">
-                                    <?php if (empty($selected_order['driver_id'])): ?>
-                                        <h6 class="insight-title">GÁN TÀI XẾ</h6>
-                                        <form method="POST">
-                                            <input type="hidden" name="action" value="assign_driver">
-                                            <input type="hidden" name="order_id" value="<?= $selected_order['id'] ?>">
-                                            <div class="input-group">
-                                                <select name="driver_id" class="form-select border-primary shadow-none"
-                                                    required>
-                                                    <option value="">-- Chọn tài xế --</option>
-                                                    <?php foreach ($available_drivers as $d): ?>
-                                                        <option value="<?= $d['id'] ?>"><?= htmlspecialchars($d['full_name']) ?>
-                                                            (<?= htmlspecialchars($d['phone']) ?>)</option>
-                                                    <?php endforeach; ?>
-                                                </select>
-                                                <button type="submit" class="btn btn-primary"
-                                                    style="background: #4318ff; border: none;">Phân công</button>
-                                            </div>
-                                        </form>
-                                    <?php else: ?>
-                                        <div class="insight-card driver-active-card p-3 rounded">
-                                            <div class="d-flex align-items-center mb-3">
-                                                <i class="bi bi-person-badge-fill fs-3 text-success me-3"></i>
-                                                <div>
-                                                    <small class="text-muted d-block mb-1">Tài xế đang phụ trách:</small>
-                                                    <strong
-                                                        class="text-dark fs-6"><?= htmlspecialchars($selected_order['driver_name']) ?></strong>
+                                    <h6 class="insight-title">GÁN TÀI XẾ</h6>
+                                    
+                                    <?php if ($can_edit_dispatch): ?>
+                                        <?php if (empty($selected_order['driver_id'])): ?>
+                                            <form method="POST">
+                                                <input type="hidden" name="action" value="assign_driver">
+                                                <input type="hidden" name="order_id" value="<?= $selected_order['id'] ?>">
+                                                <div class="input-group">
+                                                    <select name="driver_id" class="form-select border-primary shadow-none" required>
+                                                        <option value="">-- Chọn tài xế --</option>
+                                                        <?php foreach ($available_drivers as $d): ?>
+                                                            <option value="<?= $d['id'] ?>"><?= htmlspecialchars($d['full_name']) ?> (<?= htmlspecialchars($d['phone']) ?>)</option>
+                                                        <?php endforeach; ?>
+                                                    </select>
+                                                    <button type="submit" class="btn btn-primary" style="background: #4318ff; border: none;">Phân công</button>
+                                                </div>
+                                            </form>
+                                        <?php else: ?>
+                                            <div class="insight-card driver-active-card p-3 rounded">
+                                                <div class="d-flex align-items-center mb-3">
+                                                    <i class="bi bi-person-badge-fill fs-3 text-success me-3"></i>
+                                                    <div>
+                                                        <small class="text-muted d-block mb-1">Tài xế đang phụ trách:</small>
+                                                        <strong class="text-dark fs-6"><?= htmlspecialchars($selected_order['driver_name']) ?></strong>
+                                                    </div>
+                                                </div>
+                                                <div class="d-flex gap-2">
+                                                    <button class="btn btn-sm btn-outline-primary w-50" type="button" data-bs-toggle="collapse" data-bs-target="#boxChange">Đổi tài xế</button>
+                                                    <form method="POST" class="w-50" onsubmit="return confirm('Chắc chắn muốn gỡ tài xế này?');">
+                                                        <input type="hidden" name="action" value="unassign_driver">
+                                                        <input type="hidden" name="order_id" value="<?= $selected_order['id'] ?>">
+                                                        <button type="submit" class="btn btn-sm btn-outline-danger w-100">Bỏ gán</button>
+                                                    </form>
+                                                </div>
+                                                <div class="collapse mt-3" id="boxChange">
+                                                    <form method="POST">
+                                                        <input type="hidden" name="action" value="assign_driver">
+                                                        <input type="hidden" name="order_id" value="<?= $selected_order['id'] ?>">
+                                                        <div class="input-group input-group-sm">
+                                                            <select name="driver_id" class="form-select shadow-none" required>
+                                                                <option value="">-- Chọn tài xế mới --</option>
+                                                                <?php foreach ($available_drivers as $d): ?>
+                                                                    <?php if ($d['id'] != $selected_order['driver_id']): ?>
+                                                                        <option value="<?= $d['id'] ?>"><?= htmlspecialchars($d['full_name']) ?></option>
+                                                                    <?php endif; ?>
+                                                                <?php endforeach; ?>
+                                                            </select>
+                                                            <button type="submit" class="btn btn-primary" style="background: #4318ff;">Lưu</button>
+                                                        </div>
+                                                    </form>
                                                 </div>
                                             </div>
-                                            <div class="d-flex gap-2">
-                                                <button class="btn btn-sm btn-outline-primary w-50" type="button"
-                                                    data-bs-toggle="collapse" data-bs-target="#boxChange">Đổi tài xế</button>
-                                                <form method="POST" class="w-50"
-                                                    onsubmit="return confirm('Chắc chắn muốn gỡ tài xế này?');">
-                                                    <input type="hidden" name="action" value="unassign_driver">
-                                                    <input type="hidden" name="order_id" value="<?= $selected_order['id'] ?>">
-                                                    <button type="submit" class="btn btn-sm btn-outline-danger w-100">Bỏ
-                                                        gán</button>
-                                                </form>
-                                            </div>
-                                            <div class="collapse mt-3" id="boxChange">
-                                                <form method="POST">
-                                                    <input type="hidden" name="action" value="assign_driver">
-                                                    <input type="hidden" name="order_id" value="<?= $selected_order['id'] ?>">
-                                                    <div class="input-group input-group-sm">
-                                                        <select name="driver_id" class="form-select shadow-none" required>
-                                                            <option value="">-- Chọn tài xế mới --</option>
-                                                            <?php foreach ($available_drivers as $d): ?>
-                                                                <?php if ($d['id'] != $selected_order['driver_id']): ?>
-                                                                    <option value="<?= $d['id'] ?>">
-                                                                        <?= htmlspecialchars($d['full_name']) ?>
-                                                                    </option>
-                                                                <?php endif; ?>
-                                                            <?php endforeach; ?>
-                                                        </select>
-                                                        <button type="submit" class="btn btn-primary"
-                                                            style="background: #4318ff;">Lưu</button>
-                                                    </div>
-                                                </form>
-                                            </div>
+                                        <?php endif; ?>
+
+                                    <?php else: ?>
+                                        <div class="text-muted small mt-2 bg-light p-2 rounded border border-dashed text-center">
+                                            <?php if (empty($selected_order['driver_id'])): ?>
+                                                Chưa có tài xế phụ trách. (Chỉ xem)
+                                            <?php else: ?>
+                                                <strong class="text-dark"><i class="bi bi-person-badge-fill text-success"></i> <?= htmlspecialchars($selected_order['driver_name']) ?></strong> <br>
+                                                <span class="fst-italic">(Không có quyền đổi/gỡ tài xế)</span>
+                                            <?php endif; ?>
                                         </div>
                                     <?php endif; ?>
                                 </div>
@@ -482,36 +500,44 @@ try {
                                 <div class="row pt-4 border-top g-3">
                                     <div class="col-6">
                                         <h6 class="insight-title">TRẠNG THÁI</h6>
-                                        <form method="POST">
-                                            <input type="hidden" name="action" value="update_status">
-                                            <input type="hidden" name="order_id" value="<?= $selected_order['id'] ?>">
-                                            <select name="new_status" class="form-select form-select-sm shadow-none mb-2"
-                                                required>
-                                                <option value="pending" <?= $selected_order['status'] == 'pending' ? 'selected' : '' ?>>Chờ xử lý</option>
-                                                <option value="picking" <?= $selected_order['status'] == 'picking' ? 'selected' : '' ?>>Đang lấy hàng</option>
-                                                <option value="at_hub" <?= $selected_order['status'] == 'at_hub' ? 'selected' : '' ?>>Đã lưu kho</option>
-                                                <option value="delivering" <?= $selected_order['status'] == 'delivering' ? 'selected' : '' ?>>Đang giao</option>
-                                                <option value="delivered" <?= $selected_order['status'] == 'delivered' ? 'selected' : '' ?>>Đã giao xong</option>
-                                                <option value="cancelled" <?= $selected_order['status'] == 'cancelled' ? 'selected' : '' ?>>Đã hủy</option>
-                                            </select>
-                                            <button type="submit" class="btn btn-dark btn-sm w-100">Cập nhật</button>
-                                        </form>
+                                        <?php if ($can_update_order): ?>
+                                            <form method="POST">
+                                                <input type="hidden" name="action" value="update_status">
+                                                <input type="hidden" name="order_id" value="<?= $selected_order['id'] ?>">
+                                                <select name="new_status" class="form-select form-select-sm shadow-none mb-2" required>
+                                                    <option value="pending" <?= $selected_order['status'] == 'pending' ? 'selected' : '' ?>>Chờ xử lý</option>
+                                                    <option value="picking" <?= $selected_order['status'] == 'picking' ? 'selected' : '' ?>>Đang lấy hàng</option>
+                                                    <option value="at_hub" <?= $selected_order['status'] == 'at_hub' ? 'selected' : '' ?>>Đã lưu kho</option>
+                                                    <option value="delivering" <?= $selected_order['status'] == 'delivering' ? 'selected' : '' ?>>Đang giao</option>
+                                                    <option value="delivered" <?= $selected_order['status'] == 'delivered' ? 'selected' : '' ?>>Đã giao xong</option>
+                                                    <option value="cancelled" <?= $selected_order['status'] == 'cancelled' ? 'selected' : '' ?>>Đã hủy</option>
+                                                </select>
+                                                <button type="submit" class="btn btn-dark btn-sm w-100">Cập nhật</button>
+                                            </form>
+                                        <?php else: ?>
+                                            <div class="text-muted small bg-light p-2 rounded text-center">
+                                                Không có quyền cập nhật
+                                            </div>
+                                        <?php endif; ?>
                                     </div>
 
                                     <div class="col-6 border-start ps-3">
                                         <h6 class="insight-title">CHỨNG TỪ (POD)</h6>
                                         <?php if ($pod_document && !empty($pod_document['file_url'])): ?>
-                                            <form method="POST" class="d-flex flex-column gap-2 mt-2">
-                                                <input type="hidden" name="action" value="verify_pod">
-                                                <input type="hidden" name="order_id" value="<?= $selected_order['id'] ?>">
-                                                <button type="submit" name="pod_status" value="verified"
-                                                    class="btn btn-success btn-sm" <?= ($selected_order['pod_status'] ?? '') == 'verified' ? 'disabled' : '' ?>>Duyệt (Hợp lệ)</button>
-                                                <button type="submit" name="pod_status" value="rejected"
-                                                    class="btn btn-danger btn-sm" <?= ($selected_order['pod_status'] ?? '') == 'rejected' ? 'disabled' : '' ?>>Từ chối</button>
-                                            </form>
+                                            <?php if ($can_update_order): ?>
+                                                <form method="POST" class="d-flex flex-column gap-2 mt-2">
+                                                    <input type="hidden" name="action" value="verify_pod">
+                                                    <input type="hidden" name="order_id" value="<?= $selected_order['id'] ?>">
+                                                    <button type="submit" name="pod_status" value="verified" class="btn btn-success btn-sm" <?= ($selected_order['pod_status'] ?? '') == 'verified' ? 'disabled' : '' ?>>Duyệt (Hợp lệ)</button>
+                                                    <button type="submit" name="pod_status" value="rejected" class="btn btn-danger btn-sm" <?= ($selected_order['pod_status'] ?? '') == 'rejected' ? 'disabled' : '' ?>>Từ chối</button>
+                                                </form>
+                                            <?php else: ?>
+                                                 <div class="text-muted small bg-light p-2 rounded text-center mt-2">
+                                                    <?= ($selected_order['pod_status'] ?? '') == 'verified' ? '<span class="text-success">Đã duyệt</span>' : 'Đã tải lên' ?>
+                                                 </div>
+                                            <?php endif; ?>
                                         <?php else: ?>
-                                            <div
-                                                class="text-muted small text-center mt-3 bg-light p-2 rounded border border-dashed">
+                                            <div class="text-muted small text-center mt-3 bg-light p-2 rounded border border-dashed">
                                                 <i class="bi bi-image d-block mb-1 fs-5"></i> Chưa có POD
                                             </div>
                                         <?php endif; ?>
