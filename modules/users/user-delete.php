@@ -1,11 +1,16 @@
 <?php
-// Kiểm tra nếu có yêu cầu xóa gửi tới trang index.php
+// Gọi session_start() nếu chưa được gọi (Cực kỳ quan trọng để kiểm tra $_SESSION)
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
+// Kiểm tra nếu có yêu cầu xóa
 if (isset($_GET['delete_id'])) {
     $delete_id = intval($_GET['delete_id']);
 
-    // Bảo vệ: Không cho phép quản trị viên tự xóa chính mình
-    if (isset($_SESSION['user_id']) && $delete_id == $_SESSION['user_id']) {
-        echo "<script>alert('Xóa tài khoản thành công!'); window.location.href='../orders/management/main_orders.php?view=users';</script>";
+    // SỬA LỖI 1: Bẫy tự xóa chính mình (đổi 'user_id' thành 'id' cho khớp với file login.php)
+    if (isset($_SESSION['id']) && $delete_id == $_SESSION['id']) {
+        echo "<script>alert('LỖI BẢO MẬT: Bạn không thể tự xóa tài khoản đang đăng nhập của chính mình!'); window.location.href='?view=users';</script>";
         exit;
     }
 
@@ -14,11 +19,12 @@ if (isset($_GET['delete_id'])) {
     
     if ($stmt) {
         mysqli_stmt_bind_param($stmt, "i", $delete_id);
+        
         if (mysqli_stmt_execute($stmt)) {
-            echo "<script>alert('Xóa tài khoản thành công!'); window.location.href='index.php';</script>";
+            echo "<script>alert('Xóa tài khoản thành công!'); window.location.href='?view=users';</script>";
             exit;
         } else {
-            echo "<script>alert('Lỗi: Không thể xóa tài khoản này.'); window.location.href='index.php';</script>";
+            echo "<script>alert('Lỗi: Không thể xóa tài khoản này.'); window.location.href='?view=users';</script>";
             exit;
         }
         mysqli_stmt_close($stmt);

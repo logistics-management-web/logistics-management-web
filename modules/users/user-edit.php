@@ -1,6 +1,5 @@
 <?php
-
-// Xử lý Cập nhật User (Giữ nguyên logic PHP)
+// Xử lý Cập nhật User
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] == 'edit_user') {
     $id = intval($_POST['id']);
     $full_name = trim($_POST['full_name']);
@@ -11,21 +10,43 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     $is_active = intval($_POST['is_active']);
 
     if (!empty($_POST['new_password'])) {
-        $new_password = password_hash($_POST['new_password'], PASSWORD_DEFAULT);
+        $raw_password = $_POST['new_password'];
+        
+        // BẪY LỖI BẢO MẬT: Kiểm tra độ khó mật khẩu mới (Server-side)
+        $errors = [];
+        if (strlen($raw_password) < 8) $errors[] = "quá ngắn (yêu cầu ít nhất 8 ký tự)";
+        if (!preg_match("/[A-Z]/", $raw_password)) $errors[] = "thiếu chữ cái in hoa";
+        if (!preg_match("/[a-z]/", $raw_password)) $errors[] = "thiếu chữ cái in thường";
+        if (!preg_match("/[0-9]/", $raw_password)) $errors[] = "thiếu chữ số";
+        if (!preg_match("/[\W_]/", $raw_password)) $errors[] = "thiếu ký tự đặc biệt";
+
+        if (!empty($errors)) {
+            $error_msg = "Mật khẩu mới " . implode(", ", $errors) . "!";
+            echo "<script>alert('Cảnh báo: $error_msg'); window.history.back();</script>";
+            exit;
+        }
+
+        $new_password = password_hash($raw_password, PASSWORD_DEFAULT);
         $update_sql = "UPDATE users SET full_name=?, email=?, phone=?, role=?, hub_id=?, is_active=?, password=? WHERE id=?";
         $stmt = mysqli_prepare($conn, $update_sql);
-        mysqli_stmt_bind_param($stmt, "sssssiii", $full_name, $email, $phone, $role, $hub_id, $is_active, $new_password, $id);
+        
+        // ĐÃ SỬA LỖI Ở ĐÂY: Dùng "ssssiisi" để biến $new_password được lưu đúng dạng Chuỗi (s)
+        // 4 chuỗi đầu (s), hub_id (i), is_active (i), password (s), id (i) = ssssiisi
+        mysqli_stmt_bind_param($stmt, "ssssiisi", $full_name, $email, $phone, $role, $hub_id, $is_active, $new_password, $id);
     } else {
         $update_sql = "UPDATE users SET full_name=?, email=?, phone=?, role=?, hub_id=?, is_active=? WHERE id=?";
         $stmt = mysqli_prepare($conn, $update_sql);
-        mysqli_stmt_bind_param($stmt, "sssssii", $full_name, $email, $phone, $role, $hub_id, $is_active, $id);
+        
+        // ĐÃ SỬA LỖI Ở ĐÂY: Dùng "ssssiii"
+        mysqli_stmt_bind_param($stmt, "ssssiii", $full_name, $email, $phone, $role, $hub_id, $is_active, $id);
     }
 
     if (mysqli_stmt_execute($stmt)) {
-        echo "<script>alert('Cập nhật tài khoản thành công!'); window.location.href='../orders/management/main_orders.php?view=users';</script>";
+        // Đã sửa lại URL redirect để không bị lỗi Not Found 404
+        echo "<script>alert('Cập nhật tài khoản thành công!'); window.location.href='?view=users';</script>";
         exit;
     } else {
-        echo "<script>alert('Lỗi: Không thể cập nhật thông tin.');</script>";
+        echo "<script>alert('Lỗi: Không thể cập nhật thông tin.'); window.history.back();</script>";
     }
     mysqli_stmt_close($stmt);
 }
@@ -50,7 +71,7 @@ if ($role_result_edit) {
     </button>
 </div>
 
-<form method="POST" action="../../users/index.php">
+<form method="POST" action="">
     <div class="modal-body">
         <input type="hidden" name="action" value="edit_user">
         <input type="hidden" name="id" id="edit_id" value="">
@@ -73,7 +94,10 @@ if ($role_result_edit) {
             </div>
             <div class="form-col">
                 <label class="form-label">Đổi mật khẩu mới</label>
-                <input type="password" name="new_password" id="edit_new_password" class="form-control" placeholder="Để trống nếu giữ nguyên">
+                <input type="password" name="new_password" id="edit_new_password" class="form-control" placeholder="Để trống nếu giữ nguyên" oninput="window.validateEditPassword()">
+                <small id="edit_password_error" style="color: #ef4444; display: none; font-size: 12px; margin-top: 4px; font-weight: 500;">
+                    <i class="fa-solid fa-triangle-exclamation"></i> Mật khẩu phải có ít nhất 8 ký tự, gồm chữ hoa, chữ thường, số và ký tự đặc biệt.
+                </small>
             </div>
         </div>
         
@@ -110,3 +134,49 @@ if ($role_result_edit) {
         <button type="submit" class="btn btn-primary"><i class="fa-solid fa-check" style="margin-right: 6px;"></i>Cập Nhật</button>
     </div>
 </form>
+
+<script>
+// Logic kiểm tra mật khẩu giao diện (chỉ kích hoạt nếu người dùng có gõ chữ vào ô)
+window.validateEditPassword = function() {
+    const pwdInput = document.getElementById('edit_new_password');
+    const errorMsg = document.getElementById('edit_password_error');
+    const submitBtn = pwdInput.closest('form').querySelector('button[type="submit"]');
+    
+    // Yêu cầu: Tối thiểu 8 ký tự, 1 hoa, 1 thường, 1 số, 1 ký tự đặc biệt
+    const regex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_])[a-zA-Z\d\W_]{8,}$/;
+
+    // Chỉ bắt lỗi nếu người dùng thực sự muốn đổi mật khẩu (có nhập liệu)
+    if (pwdInput.value.length > 0 && !regex.test(pwdInput.value)) {
+        pwdInput.style.borderColor = '#ef4444';
+        errorMsg.style.display = 'block';
+        if (submitBtn) {
+            submitBtn.disabled = true;
+            submitBtn.style.opacity = '0.5';
+            submitBtn.style.cursor = 'not-allowed';
+        }
+        return false;
+    } else {
+        // Hợp lệ hoặc ô trống (giữ nguyên mật khẩu cũ)
+        pwdInput.style.borderColor = '#e2e8f0';
+        errorMsg.style.display = 'none';
+        if (submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.style.opacity = '1';
+            submitBtn.style.cursor = 'pointer';
+        }
+        return true;
+    }
+}
+
+// Bắt sự kiện form submit an toàn
+const formEdit = document.getElementById('edit_new_password').closest('form');
+if (formEdit) {
+    // Lưu ý: Dùng addEventListener ở đây để không ghi đè lên onsubmit của hệ thống AJAX ở index.php
+    formEdit.addEventListener('submit', function(e) {
+        if (!window.validateEditPassword()) {
+            e.preventDefault();
+            document.getElementById('edit_new_password').focus();
+        }
+    });
+}
+</script>

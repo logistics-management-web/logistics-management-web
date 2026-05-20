@@ -16,7 +16,7 @@ $dispatcher_name = $_SESSION["username"] ?? 'Admin User';
 $message = "";
 
 // ==============================================================================
-// PHẦN 1: XỬ LÝ DỮ LIỆU POST (THAO TÁC) - GIỮ NGUYÊN LOGIC CỦA BẠN
+// PHẦN 1: XỬ LÝ DỮ LIỆU POST (THAO TÁC)
 // ==============================================================================
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $action = $_POST['action'] ?? '';
@@ -140,20 +140,44 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 }
 
 // ==============================================================================
-// PHẦN 2: TRUY VẤN DỮ LIỆU ĐỂ HIỂN THỊ - GIỮ NGUYÊN LOGIC
+// PHẦN 2: TRUY VẤN DỮ LIỆU ĐỂ HIỂN THỊ (ĐÃ TÍCH HỢP TÌM KIẾM)
 // ==============================================================================
 try {
     $limit = 9; // Giảm limit xuống để hợp với layout dashboard
     $page = isset($_GET['p']) && is_numeric($_GET['p']) ? (int) $_GET['p'] : 1;
     $offset = ($page - 1) * $limit;
 
-    $resCount = mysqli_query($conn, "SELECT COUNT(*) FROM orders");
-    $total_orders = mysqli_fetch_row($resCount)[0];
-    $total_pages = ceil($total_orders / $limit);
+    // Lấy từ khóa tìm kiếm từ URL
+    $search_query = isset($_GET['search']) ? trim($_GET['search']) : '';
+    $search_term = '%' . $search_query . '%';
 
-    $sql_all = "SELECT o.*, d.full_name as driver_name FROM orders o LEFT JOIN drivers d ON o.driver_id = d.id ORDER BY o.id ASC LIMIT ? OFFSET ?";
-    $stmt_all = mysqli_prepare($conn, $sql_all);
-    mysqli_stmt_bind_param($stmt_all, "ii", $limit, $offset);
+    // Xử lý đếm tổng số lượng (để tính số trang) có kèm tìm kiếm
+    if ($search_query !== '') {
+        $sql_count = "SELECT COUNT(*) FROM orders o LEFT JOIN drivers d ON o.driver_id = d.id WHERE o.tracking_code LIKE ? OR d.full_name LIKE ?";
+        $stmt_count = mysqli_prepare($conn, $sql_count);
+        mysqli_stmt_bind_param($stmt_count, "ss", $search_term, $search_term);
+        mysqli_stmt_execute($stmt_count);
+        $resCount = mysqli_stmt_get_result($stmt_count);
+        $total_orders = mysqli_fetch_row($resCount)[0];
+        mysqli_stmt_close($stmt_count);
+    } else {
+        $resCount = mysqli_query($conn, "SELECT COUNT(*) FROM orders");
+        $total_orders = mysqli_fetch_row($resCount)[0];
+    }
+
+    $total_pages = $total_orders > 0 ? ceil($total_orders / $limit) : 1;
+
+    // Lấy danh sách có giới hạn (LIMIT) và điều kiện tìm kiếm
+    if ($search_query !== '') {
+        $sql_all = "SELECT o.*, d.full_name as driver_name FROM orders o LEFT JOIN drivers d ON o.driver_id = d.id WHERE o.tracking_code LIKE ? OR d.full_name LIKE ? ORDER BY o.id ASC LIMIT ? OFFSET ?";
+        $stmt_all = mysqli_prepare($conn, $sql_all);
+        mysqli_stmt_bind_param($stmt_all, "ssii", $search_term, $search_term, $limit, $offset);
+    } else {
+        $sql_all = "SELECT o.*, d.full_name as driver_name FROM orders o LEFT JOIN drivers d ON o.driver_id = d.id ORDER BY o.id ASC LIMIT ? OFFSET ?";
+        $stmt_all = mysqli_prepare($conn, $sql_all);
+        mysqli_stmt_bind_param($stmt_all, "ii", $limit, $offset);
+    }
+
     mysqli_stmt_execute($stmt_all);
     $res_all = mysqli_stmt_get_result($stmt_all);
     $all_orders = mysqli_fetch_all($res_all, MYSQLI_ASSOC);
@@ -227,8 +251,31 @@ try {
                 <div class="col-lg-8 mb-4">
                     <div class="col-lg-8 mb-4">
                         <div class="dash-card rounded-table-card h-100">
-                            <div class="table-header border-0 pb-0 mb-2">
+
+                            <div
+                                class="table-header border-0 pb-0 mb-2 d-flex justify-content-between align-items-center">
                                 <h6 class="mb-0 text-bold-dark">Danh sách chờ xử lý</h6>
+
+                                <form method="GET" action="dispatch.php" class="d-flex align-items-center m-0">
+                                    <?php if (isset($_GET['order_id'])): ?>
+                                        <input type="hidden" name="order_id"
+                                            value="<?= htmlspecialchars($_GET['order_id']) ?>">
+                                    <?php endif; ?>
+
+                                    <div class="input-group input-group-sm" style="width: 250px;">
+                                        <input type="text" name="search" class="form-control shadow-none"
+                                            placeholder="Mã đơn, tài xế..."
+                                            value="<?= htmlspecialchars($search_query) ?>">
+                                        <button class="btn btn-primary px-3" type="submit"
+                                            style="background-color: #4318ff; border: none;"><i
+                                                class="bi bi-search"></i></button>
+                                        <?php if ($search_query !== ''): ?>
+                                            <a href="dispatch.php<?= isset($_GET['order_id']) ? '?order_id=' . $_GET['order_id'] : '' ?>"
+                                                class="btn btn-outline-secondary" title="Xóa tìm kiếm"><i
+                                                    class="bi bi-x"></i></a>
+                                        <?php endif; ?>
+                                    </div>
+                                </form>
                             </div>
 
                             <div class="table-responsive">
@@ -245,7 +292,8 @@ try {
                                         <?php foreach ($all_orders as $row): ?>
                                             <tr class="<?= ($selected_id == $row['id']) ? 'active-row' : '' ?>">
                                                 <td class="text-bold-dark ps-3">
-                                                    <?= htmlspecialchars($row['tracking_code']) ?></td>
+                                                    <?= htmlspecialchars($row['tracking_code']) ?>
+                                                </td>
                                                 <td>
                                                     <?php
                                                     $badge_class = 'bg-secondary';
@@ -268,7 +316,7 @@ try {
                                                     </div>
                                                 </td>
                                                 <td class="text-end pe-3">
-                                                    <a href="?order_id=<?= $row['id'] ?>&p=<?= $page ?>"
+                                                    <a href="?order_id=<?= $row['id'] ?>&p=<?= $page ?>&search=<?= urlencode($search_query) ?>"
                                                         class="btn-detail-action text-decoration-none">
                                                         <span>Chi tiết</span>
                                                         <i class="bi bi-chevron-right ms-1"></i>
@@ -286,13 +334,30 @@ try {
                                         class="text-dark"><?= $total_pages ?></strong>
                                 </span>
 
-                                <div class="pagination-mini">
-                                    <a href="?p=<?= max(1, $page - 1) ?>"
+                                <div class="pagination-mini d-flex align-items-center">
+                                    <a href="?p=<?= max(1, $page - 1) ?>&search=<?= urlencode($search_query) ?><?= isset($_GET['order_id']) ? '&order_id=' . $_GET['order_id'] : '' ?>"
                                         class="btn-page text-decoration-none <?= ($page <= 1) ? 'disabled' : '' ?>">
                                         <i class="bi bi-chevron-left"></i> Trước
                                     </a>
-                                    <span class="page-num"><?= $page ?></span>
-                                    <a href="?p=<?= min($total_pages, $page + 1) ?>"
+
+                                    <form method="GET" action="dispatch.php" class="d-flex align-items-center m-0 mx-2">
+                                        <?php if (isset($_GET['order_id'])): ?>
+                                            <input type="hidden" name="order_id"
+                                                value="<?= htmlspecialchars($_GET['order_id']) ?>">
+                                        <?php endif; ?>
+                                        <?php if ($search_query !== ''): ?>
+                                            <input type="hidden" name="search"
+                                                value="<?= htmlspecialchars($search_query) ?>">
+                                        <?php endif; ?>
+
+                                        <input type="number" name="p" value="<?= $page ?>" min="1"
+                                            max="<?= $total_pages ?>"
+                                            class="form-control form-control-sm text-center shadow-none"
+                                            style="width: 65px; height: 32px; font-weight: bold; color: #4318ff; border-color: #e2e8f0; border-radius: 4px;"
+                                            title="Nhập số trang và nhấn Enter">
+                                    </form>
+
+                                    <a href="?p=<?= min($total_pages, $page + 1) ?>&search=<?= urlencode($search_query) ?><?= isset($_GET['order_id']) ? '&order_id=' . $_GET['order_id'] : '' ?>"
                                         class="btn-page text-decoration-none <?= ($page >= $total_pages) ? 'disabled' : '' ?>">
                                         Sau <i class="bi bi-chevron-right"></i>
                                     </a>
@@ -322,12 +387,14 @@ try {
                                     <div class="col-6">
                                         <label class="text-muted small fw-medium mb-1">Lấy hàng từ:</label>
                                         <p class="mb-0 small text-bold-dark">
-                                            <?= htmlspecialchars($selected_order['source_text'] ?? 'N/A') ?></p>
+                                            <?= htmlspecialchars($selected_order['source_text'] ?? 'N/A') ?>
+                                        </p>
                                     </div>
                                     <div class="col-6">
                                         <label class="text-muted small fw-medium mb-1">Giao hàng đến:</label>
                                         <p class="mb-0 small text-bold-dark">
-                                            <?= htmlspecialchars($selected_order['dest_text'] ?? 'N/A') ?></p>
+                                            <?= htmlspecialchars($selected_order['dest_text'] ?? 'N/A') ?>
+                                        </p>
                                     </div>
                                 </div>
 
@@ -398,7 +465,8 @@ try {
                                                             <?php foreach ($available_drivers as $d): ?>
                                                                 <?php if ($d['id'] != $selected_order['driver_id']): ?>
                                                                     <option value="<?= $d['id'] ?>">
-                                                                        <?= htmlspecialchars($d['full_name']) ?></option>
+                                                                        <?= htmlspecialchars($d['full_name']) ?>
+                                                                    </option>
                                                                 <?php endif; ?>
                                                             <?php endforeach; ?>
                                                         </select>
@@ -444,7 +512,8 @@ try {
                                         <?php else: ?>
                                             <div
                                                 class="text-muted small text-center mt-3 bg-light p-2 rounded border border-dashed">
-                                                <i class="bi bi-image d-block mb-1 fs-5"></i> Chưa có POD</div>
+                                                <i class="bi bi-image d-block mb-1 fs-5"></i> Chưa có POD
+                                            </div>
                                         <?php endif; ?>
                                     </div>
                                 </div>
@@ -462,7 +531,8 @@ try {
                                                             <?= date('d/m/Y H:i', strtotime($log['created_at'])) ?>
                                                         </div>
                                                         <div class="fw-medium text-dark lh-sm">
-                                                            <?= htmlspecialchars($log['description']) ?></div>
+                                                            <?= htmlspecialchars($log['description']) ?>
+                                                        </div>
                                                     </li>
                                                 <?php endforeach; ?>
                                             </ul>
@@ -490,6 +560,67 @@ try {
 
         </div>
     </div>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            // Khu vực danh sách đơn hàng (bên trái)
+            const tableBody = document.querySelector('.modern-rounded-table tbody');
+            // Khu vực hiển thị chi tiết (bên phải)
+            const detailContainer = document.querySelector('.sticky-top-card');
+
+            if (tableBody && detailContainer) {
+                // Lắng nghe sự kiện click trên toàn bộ bảng
+                tableBody.addEventListener('click', function (e) {
+                    // Bắt sự kiện khi click trúng khu vực có nút "Chi tiết"
+                    const link = e.target.closest('.btn-detail-action');
+
+                    if (link) {
+                        e.preventDefault(); // Ngăn chặn hành vi load lại trang mặc định
+                        const url = link.href;
+
+                        // 1. Hiển thị hiệu ứng loading (Spinner) để báo hiệu hệ thống đang xử lý
+                        detailContainer.innerHTML = `
+                        <div class="dash-card detail-card d-flex flex-column align-items-center justify-content-center text-muted" style="height: 400px; border: 2px dashed #e2e8f0;">
+                            <div class="spinner-border text-primary mb-3" style="width: 3rem; height: 3rem;" role="status"></div>
+                            <h6 class="text-dark">Đang tải chi tiết...</h6>
+                        </div>`;
+
+                        // 2. Cập nhật highlight cho dòng vừa click
+                        document.querySelectorAll('.modern-rounded-table tbody tr').forEach(tr => {
+                            tr.classList.remove('active-row');
+                        });
+                        link.closest('tr').classList.add('active-row');
+
+                        // 3. Cập nhật URL trên thanh địa chỉ (để user copy link hoặc F5 vẫn đúng trạng thái)
+                        window.history.pushState({ path: url }, '', url);
+
+                        // 4. Gọi Fetch API ngầm để lấy giao diện và đắp vào cột phải
+                        fetch(url)
+                            .then(res => res.text())
+                            .then(html => {
+                                const parser = new DOMParser();
+                                const doc = parser.parseFromString(html, 'text/html');
+
+                                // Bóc tách lấy đúng khung nội dung HTML của cột bên phải
+                                const newDetailHtml = doc.querySelector('.sticky-top-card').innerHTML;
+
+                                // Thay thế khung chi tiết hiện tại bằng nội dung mới mượt mà
+                                detailContainer.innerHTML = newDetailHtml;
+                            })
+                            .catch(err => {
+                                console.error('Lỗi khi fetch:', err);
+                                detailContainer.innerHTML = '<div class="alert alert-danger m-4 shadow-sm text-center">Lỗi tải dữ liệu. Vui lòng thử lại!</div>';
+                            });
+                    }
+                });
+
+                // Lắng nghe sự kiện để nút "Back" của trình duyệt hoạt động đúng logic
+                window.addEventListener('popstate', function () {
+                    window.location.reload();
+                });
+            }
+        });
+    </script>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 

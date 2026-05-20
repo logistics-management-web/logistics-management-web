@@ -1,8 +1,41 @@
 <?php
-// Xử lý tạo User (Giữ nguyên logic PHP)
+// Xử lý tạo User
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] == 'add_user') {
     $email = trim($_POST['email']);
-    $password = password_hash($_POST['password'], PASSWORD_DEFAULT);
+    $raw_password = $_POST['password']; // Lấy mật khẩu gốc để kiểm tra
+
+    // ==========================================
+    // BẪY LỖI BẢO MẬT SERVER-SIDE (PHP)
+    // ==========================================
+    $errors = [];
+    if (strlen($raw_password) < 8) {
+        $errors[] = "quá ngắn (yêu cầu ít nhất 8 ký tự)";
+    }
+    if (!preg_match("/[A-Z]/", $raw_password)) {
+        $errors[] = "thiếu chữ cái in hoa";
+    }
+    if (!preg_match("/[a-z]/", $raw_password)) {
+        $errors[] = "thiếu chữ cái in thường";
+    }
+    if (!preg_match("/[0-9]/", $raw_password)) {
+        $errors[] = "thiếu chữ số";
+    }
+    if (!preg_match("/[\W_]/", $raw_password)) {
+        $errors[] = "thiếu ký tự đặc biệt (VD: @, #, $, %...)";
+    }
+
+    if (!empty($errors)) {
+        $error_msg = "Mật khẩu " . implode(", ", $errors) . "!";
+        echo "<script>
+            alert('Cảnh báo bảo mật: $error_msg');
+            window.history.back();
+        </script>";
+        exit;
+    }
+
+    // Nếu mật khẩu hợp lệ -> Mã hóa
+    $password = password_hash($raw_password, PASSWORD_DEFAULT);
+    
     $full_name = trim($_POST['full_name']);
     $phone = trim($_POST['phone']);
     $role = $_POST['role'];
@@ -15,11 +48,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     if ($stmt) {
         mysqli_stmt_bind_param($stmt, "sssssii", $email, $password, $full_name, $phone, $role, $hub_id, $is_active);
         if (mysqli_stmt_execute($stmt)) {
-            echo "<script>alert('Thêm tài khoản thành công!'); window.location.href='index.php';</script>";
+            // Đã sửa 'index.php' thành '?view=users' để chống lỗi Not Found (404)
+            echo "<script>alert('Thêm tài khoản thành công!'); window.location.href='?view=users';</script>";
         } else {
-            echo "<script>alert('Lỗi: Cập nhật không thành công (Có thể Email đã tồn tại).');</script>";
+            echo "<script>alert('Lỗi: Cập nhật không thành công (Có thể Email đã tồn tại).'); window.history.back();</script>";
         }
         mysqli_stmt_close($stmt);
+        exit;
     }
 }
 
@@ -43,7 +78,7 @@ if ($role_result) {
     </button>
 </div>
 
-<form method="POST" action="../../users/index.php">
+<form method="POST" action="">
     <div class="modal-body">
         <input type="hidden" name="action" value="add_user">
 
@@ -64,8 +99,11 @@ if ($role_result) {
                 <input type="text" name="phone" class="form-control" placeholder="Nhập số điện thoại..." required>
             </div>
             <div class="form-col">
-                <label class="form-label">Mật khẩu</label>
-                <input type="password" name="password" class="form-control" placeholder="••••••••" required>
+                <label class="form-label">Mật khẩu <span style="color: #ef4444;">*</span></label>
+                <input type="password" id="add_password" name="password" class="form-control" placeholder="••••••••" required oninput="window.validatePassword()">
+                <small id="password_error" style="color: #ef4444; display: none; font-size: 12px; margin-top: 4px; font-weight: 500;">
+                    <i class="fa-solid fa-triangle-exclamation"></i> Mật khẩu phải có ít nhất 8 ký tự, gồm chữ hoa, chữ thường, số và ký tự đặc biệt.
+                </small>
             </div>
         </div>
         
@@ -101,3 +139,49 @@ if ($role_result) {
         <button type="submit" class="btn btn-primary"><i class="fa-solid fa-save" style="margin-right: 6px;"></i>Tạo Tài Khoản</button>
     </div>
 </form>
+
+<script>
+window.validatePassword = function() {
+    const pwdInput = document.getElementById('add_password');
+    const errorMsg = document.getElementById('password_error');
+    
+    // Tìm chuẩn nút Submit
+    const submitBtn = pwdInput.closest('form').querySelector('button[type="submit"]');
+
+    // Biểu thức Regex: Tối thiểu 8 ký tự, có ít nhất 1 chữ hoa, 1 chữ thường, 1 số và 1 ký tự đặc biệt
+    const regex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_])[a-zA-Z\d\W_]{8,}$/;
+
+    if (pwdInput.value.length > 0 && !regex.test(pwdInput.value)) {
+        // Sai điều kiện: Hiển thị lỗi, khóa cứng nút
+        pwdInput.style.borderColor = '#ef4444';
+        errorMsg.style.display = 'block';
+        if (submitBtn) {
+            submitBtn.disabled = true;
+            submitBtn.style.opacity = '0.5';
+            submitBtn.style.cursor = 'not-allowed';
+        }
+        return false;
+    } else {
+        // Hợp lệ: Xóa lỗi, mở khóa nút
+        pwdInput.style.borderColor = '#e2e8f0'; // Hoặc màu viền mặc định của form-control
+        errorMsg.style.display = 'none';
+        if (submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.style.opacity = '1';
+            submitBtn.style.cursor = 'pointer';
+        }
+        return true;
+    }
+}
+
+// Bắt sự kiện form submit (Ngăn cản thao tác F12 bypass)
+const formAdd = document.getElementById('add_password').closest('form');
+if (formAdd) {
+    formAdd.onsubmit = function(e) {
+        if (!window.validatePassword()) {
+            e.preventDefault();
+            document.getElementById('add_password').focus();
+        }
+    };
+}
+</script>

@@ -40,23 +40,23 @@ require_once '../../../config/config.php';
         <?php endif; ?>
 
         <?php if (check_permission('orders', 'view')): ?>
-        <a href="main_orders.php" class="nav-item active">
-            <i class="fa-solid fa-clipboard-list"></i> Quản lý Đơn hàng
-        </a>
+            <a href="main_orders.php" class="nav-item active">
+                <i class="fa-solid fa-clipboard-list"></i> Quản lý Đơn hàng
+            </a>
         <?php endif; ?>
 
         <?php if (check_permission('dispatch', 'view')): ?>
-        <a href="javascript:void(0);" class="nav-item" onclick="loadModule('../coordination/dispatch.php', this)">
-            <i class="fa-solid fa-network-wired fa-coordination"></i> Điều phối Đơn hàng
-        </a>
+            <a href="javascript:void(0);" class="nav-item" onclick="loadModule('../coordination/dispatch.php', this)">
+                <i class="fa-solid fa-network-wired fa-coordination"></i> Điều phối Đơn hàng
+            </a>
         <?php endif; ?>
 
         <div class="menu-title">HỆ THỐNG</div>
 
         <?php if (check_permission('warehouse', 'view')): ?>
-        <a href="javascript:void(0);" class="nav-item" onclick="loadModule('../../warehouse/warehouse.php', this)">
-            <i class="fa-solid fa-warehouse"></i> Quản trị Kho bãi
-        </a>
+            <a href="javascript:void(0);" class="nav-item" onclick="loadModule('../../warehouse/warehouse.php', this)">
+                <i class="fa-solid fa-warehouse"></i> Quản trị Kho bãi
+            </a>
         <?php endif; ?>
 
         <?php if (check_permission('trucks', 'view')): ?>
@@ -76,9 +76,9 @@ require_once '../../../config/config.php';
         <?php endif; ?>
 
         <?php if (check_permission('pricing', 'view')): ?>
-        <a href="javascript:void(0);" class="nav-item" onclick="loadModule('../../pricing/shippingFee.php', this)">
-            <i class="fa-solid fa-file-invoice-dollar fa-pricing"></i> Bảng giá cước
-        </a>
+            <a href="javascript:void(0);" class="nav-item" onclick="loadModule('../../pricing/shippingFee.php', this)">
+                <i class="fa-solid fa-file-invoice-dollar fa-pricing"></i> Bảng giá cước
+            </a>
         <?php endif; ?>
 
         <?php if (check_permission('users', 'view')): ?>
@@ -301,6 +301,7 @@ require_once '../../../config/config.php';
     <script src="apps.js"></script>
     <script>
         // Hàm tải giao diện quản lý người dùng siêu tốc vào vùng nội dung bên phải
+        // Hàm tải giao diện quản lý người dùng siêu tốc vào vùng nội dung bên phải
         function loadUserManagement(element) {
             // Đổi trạng thái active trên thanh menu sidebar
             document.querySelectorAll('.sidebar .nav-item').forEach(item => item.classList.remove('active'));
@@ -311,8 +312,17 @@ require_once '../../../config/config.php';
                 if (menuUsers) menuUsers.classList.add('active');
             }
 
-            // Gọi AJAX lấy nội dung từ module users
-            fetch('../../users/index.php')
+            // 1. Lấy tất cả tham số trên thanh địa chỉ (ví dụ: ?view=users&search=dat&p=2)
+            let queryString = window.location.search;
+
+            // 2. Nếu bấm từ menu sidebar (chưa có tham số view), tự động gắn vào để chống mất session
+            if (!queryString.includes('view=users')) {
+                queryString = '?view=users';
+                window.history.pushState(null, '', window.location.pathname + queryString);
+            }
+
+            // 3. Nối queryString vào fetch để truyền từ khóa tìm kiếm xuống file index.php
+            fetch('../../users/index.php' + queryString)
                 .then(response => response.text())
                 .then(html => {
                     var v = document.getElementById("main-view");
