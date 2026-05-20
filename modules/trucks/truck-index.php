@@ -231,7 +231,9 @@ $drivers = driverSelectionList();
             <div style="float: right; margin-top: 20px;">
                 <?php $can_edit_trucks = check_permission('trucks', 'edit'); ?>
 
-                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addTruckModal" <?= !$can_edit_trucks ? 'disabled style="opacity: 0.5; cursor: not-allowed;" title="Chỉ Quản lý đội xe mới được thao tác"' : ''; ?>>
+                <?php $can_edit_trucks = check_permission('trucks', 'edit'); ?>
+                <button class="btn btn-primary" 
+                    <?= !$can_edit_trucks ? 'disabled style="opacity: 0.5; cursor: not-allowed !important; pointer-events: auto !important;" title="Vai trò của bạn không có quyền thêm xe"' : 'data-bs-toggle="modal" data-bs-target="#addTruckModal"' ?>>
                     <i class="fa-solid fa-plus"></i> Thêm Xe Mới
                 </button>
             </div>
@@ -277,24 +279,11 @@ $drivers = driverSelectionList();
                                 <td>
                                     <?php if ($can_edit_trucks): ?>
                                         <button class="btn-icon text-blue" data-bs-toggle="modal" data-bs-target="#editTruckModal"
-                                            data-id="<?php echo $tr['id']; ?>"
-                                            data-plate="<?php echo htmlspecialchars($tr['plate_number']); ?>"
-                                            data-type="<?php echo htmlspecialchars($tr['truck_type']); ?>"
-                                            data-capacity="<?php echo $tr['capacity_kg']; ?>"
-                                            data-brand="<?php echo htmlspecialchars($tr['brand_model']); ?>"
-                                            data-driver="<?php echo $tr['main_driver_id']; ?>"
-                                            data-doc-type="<?php echo htmlspecialchars($tr['document_type']); ?>"
-                                            data-doc-num="<?php echo htmlspecialchars($tr['document_number']); ?>"
-                                            data-issue="<?php echo $tr['issue_date']; ?>"
-                                            data-expire="<?php echo $tr['expiry_date']; ?>">Sửa</button>
+                                            data-id="<?php echo $tr['id']; ?>" ... >Sửa</button>
                                     <?php endif; ?>
 
                                     <button class="btn-icon text-blue" data-bs-toggle="modal"
-                                        data-bs-target="#viewDocumentModal" data-plate="<?php echo $tr['plate_number']; ?>"
-                                        data-type="<?php echo $tr['document_type']; ?>"
-                                        data-num="<?php echo $tr['document_number']; ?>"
-                                        data-issue="<?php echo $tr['issue_date']; ?>"
-                                        data-expire="<?php echo $tr['expiry_date']; ?>" style="color: #06ebd8;">Giấy tờ</button>
+                                        data-bs-target="#viewDocumentModal" ... style="color: #06ebd8;">Giấy tờ</button>
 
                                     <?php if ($can_edit_trucks): ?>
                                         <form method="POST" style="display:inline-block;">

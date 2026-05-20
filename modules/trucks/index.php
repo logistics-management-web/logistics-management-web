@@ -228,11 +228,10 @@ $drivers = driverList();
                 <h1 class="text-bold" style="font-size: 32px;">Danh mục Tài xế</h1>
             </div>
             <div style="float: right; margin-top: 20px;">
-                <?php if (check_permission('trucks', 'edit')): ?>
-                    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addDriverModal">
-                        + Thêm tài xế mới
-                    </button>
-                <?php endif; ?>
+                <?php $can_edit_trucks = check_permission('trucks', 'edit'); ?>
+                <button type="button" class="btn btn-primary" <?= !$can_edit_trucks ? 'disabled style="opacity: 0.5; cursor: not-allowed !important; pointer-events: auto !important;" title="Vai trò của bạn không có quyền thêm tài xế"' : 'data-bs-toggle="modal" data-bs-target="#addDriverModal"' ?>>
+                    + Thêm tài xế mới
+                </button>
             </div>
         </div>
 
@@ -260,7 +259,8 @@ $drivers = driverList();
                                     <div class="info-container">
                                         <div class="text-bold"><?php echo htmlspecialchars($dr['full_name']); ?></div>
                                         <div class="text-gray" style="font-size: 12px;">Ngày tạo:
-                                            <?php echo date("d/m/Y", strtotime($dr['created_at'])); ?></div>
+                                            <?php echo date("d/m/Y", strtotime($dr['created_at'])); ?>
+                                        </div>
                                     </div>
                                 </td>
                                 <td><?php echo htmlspecialchars($dr['phone']); ?></td>

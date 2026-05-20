@@ -92,11 +92,10 @@ $all_drivers = driverSelectionList();
         </div>
         <div style="float: right; margin-top: 20px;">
             <?php $can_edit_trucks = check_permission('trucks', 'edit'); ?>
-            <?php if ($can_edit_trucks): ?>
-                <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addLogModal">
-                    + Thêm nhật ký mới
-                </button>
-            <?php endif; ?>
+            <button type="button" class="btn btn-primary" 
+                <?= !$can_edit_trucks ? 'disabled style="opacity: 0.5; cursor: not-allowed !important; pointer-events: auto !important;" title="Vai trò của bạn không có quyền thêm nhật ký"' : 'data-bs-toggle="modal" data-bs-target="#addLogModal"' ?>>
+                + Thêm nhật ký mới
+            </button>
         </div>
     </div>
 
