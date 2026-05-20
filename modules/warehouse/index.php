@@ -67,7 +67,7 @@ disconnectDB();
                 </div>
                 <div>
                     <?php $can_edit_wh = check_permission('warehouse', 'edit'); ?>
-                    <button class="btn btn-primary" onclick="openAddWarehouse()" <?= !$can_edit_wh ? 'disabled style="opacity: 0.5; cursor: not-allowed;"' : ''; ?>>
+                    <button class="btn btn-primary" onclick="openModal('addWarehouseModal')" <?= !$can_edit_wh ? 'disabled style="opacity: 0.5; cursor: not-allowed;"' : ''; ?>>
                         <i class="fa-solid fa-plus"></i> Thêm Kho/Hub Mới
                     </button>
                 </div>
