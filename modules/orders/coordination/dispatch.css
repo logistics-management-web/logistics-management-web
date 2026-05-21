@@ -40,6 +40,32 @@ body {
   transition: all 0.2s ease;
 }
 
+/* Đổi màu nền mặc định cho toàn bộ nội dung cột Trạng thái (cột số 2)
+.modern-rounded-table tbody tr td:nth-child(2) {
+  background-color: #ebf0fe;
+}
+
+.modern-rounded-table thead tr th:nth-child(2) {
+  background-color: #ebf0fe; 
+  border-radius: 8px; 
+}
+
+.modern-rounded-table tbody tr:hover td:nth-child(2) {
+  background-color: #e9e3ff;
+}
+
+.modern-rounded-table tbody tr.active-row td:nth-child(2) {
+  background-color: #4318ff;
+}
+
+.modern-rounded-table tbody tr:nth-child(odd) td{
+  background-color: #f4f7fe;
+}
+.modern-rounded-table tbody tr:nth-child(even) td{
+  background-color: #f8faff;
+}
+*/
+
 /* Các class bo góc vẫn giữ nguyên */
 .modern-rounded-table tbody tr td:first-child {
   border-top-left-radius: 10px;
