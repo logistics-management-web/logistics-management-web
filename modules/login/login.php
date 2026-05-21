@@ -1,8 +1,12 @@
 <?php
 session_start();
-// Nếu đã đăng nhập rồi thì đẩy thẳng vào trang điều phối
+// Nếu đã đăng nhập rồi thì đẩy thẳng vào trang điều phối (hoặc trang đổi mật khẩu nếu chưa đổi)
 if (isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true) {
-    header("location: ../orders/management/main_orders.php");
+    if (isset($_SESSION["is_first_login"]) && $_SESSION["is_first_login"] == 1) {
+        header("location: change_password.php");
+    } else {
+        header("location: ../orders/management/main_orders.php");
+    }
     exit;
 }
 
@@ -33,8 +37,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     // 3. Tiến hành truy vấn CSDL
     if (empty($email_err) && empty($password_err)) {
-        // Chuyển parameter từ :email sang dấu ? cho tương thích với MySQLi
-        $sql = "SELECT id, email, password, full_name, role FROM users WHERE email = ? AND is_active = 1";
+        // CẬP NHẬT: Thêm is_first_login vào câu lệnh SELECT
+        $sql = "SELECT id, email, password, full_name, role, is_first_login FROM users WHERE email = ? AND is_active = 1";
 
         if ($stmt = mysqli_prepare($conn, $sql)) {
             // Bind biến vào câu lệnh ("s" đại diện cho kiểu string)
@@ -53,6 +57,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         $db_password = $row["password"];
                         $full_name = $row["full_name"];
                         $role = $row["role"];
+                        $is_first_login = $row["is_first_login"]; // Lấy trạng thái đăng nhập lần đầu
 
                         // =========================================================
                         // CƠ CHẾ KIỂM TRA MẬT KHẨU THÔNG MINH (HỖ TRỢ CẢ MẬT KHẨU CŨ)
@@ -84,12 +89,17 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                             $_SESSION["email"] = $email_db;
                             $_SESSION["username"] = $full_name; // Lấy tên thật để hiển thị lên Navbar
                             $_SESSION["role"] = $role; // Lưu quyền để phân quyền sau này
+                            $_SESSION["is_first_login"] = $is_first_login; // LƯU TRẠNG THÁI ĐĂNG NHẬP LẦN ĐẦU
 
                             // Đóng kết nối trước khi redirect
                             disconnectDB();
 
-                            // Chuyển hướng tới trang Điều phối 
-                            header("location: ../orders/management/main_orders.php");
+                            // CẬP NHẬT: Kiểm tra và chuyển hướng dựa trên is_first_login
+                            if ($is_first_login == 1) {
+                                header("location: change_password.php");
+                            } else {
+                                header("location: ../orders/management/main_orders.php");
+                            }
                             exit;
                         } else {
                             $login_err = "Sai mật khẩu. Vui lòng kiểm tra lại.";
@@ -215,7 +225,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 toggleForgotForm();
             }
         </script>
-        </form>
     </div>
 </body>
 
