@@ -1,5 +1,12 @@
 <?php
-global $conn;   
+global $conn;
+if (isset($_SESSION['user_id']) && isset($_SESSION['is_first_login'])) {
+    if ($_SESSION['is_first_login'] == 1 && basename($_SERVER['PHP_SELF']) != 'change_password.php') {
+        // Cưỡng chế quay lại trang đổi mật khẩu nếu chưa đổi
+        header("Location: /path/to/modules/login/change_password.php");
+        exit();
+    }
+}   
 
 function connectDB() {
     global $conn;
