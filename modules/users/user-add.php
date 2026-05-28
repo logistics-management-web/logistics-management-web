@@ -36,8 +36,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     // Nếu mật khẩu hợp lệ -> Mã hóa
     $password = password_hash($raw_password, PASSWORD_DEFAULT);
     
+    // Bắt dữ liệu và bẫy lỗi Họ tên, Số điện thoại
     $full_name = trim($_POST['full_name']);
     $phone = trim($_POST['phone']);
+    
+    $input_errors = [];
+    // Kiểm tra Họ tên: Chỉ cho phép chữ cái (bao gồm Tiếng Việt) và khoảng trắng, độ dài 2-50
+    if (!preg_match("/^[\p{L}\s]{2,50}$/u", $full_name)) {
+        $input_errors[] = "- Họ và tên không hợp lệ (chỉ chứa chữ cái, không chứa số/ký tự đặc biệt).";
+    }
+    // Kiểm tra Số điện thoại: Phải bắt đầu bằng 0, độ dài đúng 10 số
+    if (!preg_match("/^0[0-9]{9}$/", $phone)) {
+        $input_errors[] = "- Số điện thoại không hợp lệ (phải gồm 10 chữ số và bắt đầu bằng số 0).";
+    }
+
+    if (!empty($input_errors)) {
+        $err_msg = implode("\\n", $input_errors);
+        echo "<script>
+            alert('Cảnh báo nhập liệu:\\n$err_msg');
+            window.history.back();
+        </script>";
+        exit;
+    }
     $role = $_POST['role'];
     $hub_id = !empty($_POST['hub_id']) ? intval($_POST['hub_id']) : null;
     $is_active = intval($_POST['is_active']);
@@ -85,7 +105,10 @@ if ($role_result) {
         <div class="form-row">
             <div class="form-col">
                 <label class="form-label">Họ và Tên</label>
-                <input type="text" name="full_name" class="form-control" placeholder="Nhập họ và tên..." required>
+                <input type="text" id="add_full_name" name="full_name" class="form-control" placeholder="Nhập họ và tên..." required oninput="window.validateAddForm()">
+                <small id="add_name_error" style="color: #ef4444; display: none; font-size: 12px; margin-top: 4px; font-weight: 500;">
+                    <i class="fa-solid fa-triangle-exclamation"></i> Tên chỉ chứa chữ cái, 2-50 ký tự.
+                </small>
             </div>
             <div class="form-col">
                 <label class="form-label">Địa chỉ Email</label>
@@ -96,7 +119,10 @@ if ($role_result) {
         <div class="form-row">
             <div class="form-col">
                 <label class="form-label">Số điện thoại</label>
-                <input type="text" name="phone" class="form-control" placeholder="Nhập số điện thoại..." required>
+                <input type="text" id="add_phone" name="phone" class="form-control" placeholder="Nhập số điện thoại..." required oninput="window.validateAddForm()">
+                <small id="add_phone_error" style="color: #ef4444; display: none; font-size: 12px; margin-top: 4px; font-weight: 500;">
+                    <i class="fa-solid fa-triangle-exclamation"></i> SĐT phải gồm 10 số, bắt đầu bằng 0.
+                </small>
             </div>
             <div class="form-col">
                 <label class="form-label">Mật khẩu <span style="color: #ef4444;">*</span></label>
@@ -141,46 +167,69 @@ if ($role_result) {
 </form>
 
 <script>
-window.validatePassword = function() {
+window.validateAddForm = function() {
+    const nameInput = document.getElementById('add_full_name');
+    const phoneInput = document.getElementById('add_phone');
     const pwdInput = document.getElementById('add_password');
-    const errorMsg = document.getElementById('password_error');
-    
-    // Tìm chuẩn nút Submit
     const submitBtn = pwdInput.closest('form').querySelector('button[type="submit"]');
 
-    // Biểu thức Regex: Tối thiểu 8 ký tự, có ít nhất 1 chữ hoa, 1 chữ thường, 1 số và 1 ký tự đặc biệt
-    const regex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_])[a-zA-Z\d\W_]{8,}$/;
+    let isNameValid = true, isPhoneValid = true, isPwdValid = true;
 
-    if (pwdInput.value.length > 0 && !regex.test(pwdInput.value)) {
-        // Sai điều kiện: Hiển thị lỗi, khóa cứng nút
-        pwdInput.style.borderColor = '#ef4444';
-        errorMsg.style.display = 'block';
-        if (submitBtn) {
-            submitBtn.disabled = true;
-            submitBtn.style.opacity = '0.5';
-            submitBtn.style.cursor = 'not-allowed';
-        }
-        return false;
+    // Regex
+    const nameRegex = /^[\p{L}\s]{2,50}$/u;
+    const phoneRegex = /^0[0-9]{9}$/;
+    const pwdRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_])[a-zA-Z\d\W_]{8,}$/;
+
+    // Check Name
+    if (nameInput.value.trim().length > 0 && !nameRegex.test(nameInput.value.trim())) {
+        nameInput.style.borderColor = '#ef4444';
+        document.getElementById('add_name_error').style.display = 'block';
+        isNameValid = false;
     } else {
-        // Hợp lệ: Xóa lỗi, mở khóa nút
-        pwdInput.style.borderColor = '#e2e8f0'; // Hoặc màu viền mặc định của form-control
-        errorMsg.style.display = 'none';
-        if (submitBtn) {
-            submitBtn.disabled = false;
-            submitBtn.style.opacity = '1';
-            submitBtn.style.cursor = 'pointer';
-        }
+        nameInput.style.borderColor = '#e2e8f0';
+        document.getElementById('add_name_error').style.display = 'none';
+    }
+
+    // Check Phone
+    if (phoneInput.value.trim().length > 0 && !phoneRegex.test(phoneInput.value.trim())) {
+        phoneInput.style.borderColor = '#ef4444';
+        document.getElementById('add_phone_error').style.display = 'block';
+        isPhoneValid = false;
+    } else {
+        phoneInput.style.borderColor = '#e2e8f0';
+        document.getElementById('add_phone_error').style.display = 'none';
+    }
+
+    // Check Password
+    if (pwdInput.value.length > 0 && !pwdRegex.test(pwdInput.value)) {
+        pwdInput.style.borderColor = '#ef4444';
+        document.getElementById('password_error').style.display = 'block';
+        isPwdValid = false;
+    } else {
+        pwdInput.style.borderColor = '#e2e8f0';
+        document.getElementById('password_error').style.display = 'none';
+    }
+
+    // Khóa/Mở Khóa nút Submit
+    if (isNameValid && isPhoneValid && isPwdValid) {
+        submitBtn.disabled = false;
+        submitBtn.style.opacity = '1';
+        submitBtn.style.cursor = 'pointer';
         return true;
+    } else {
+        submitBtn.disabled = true;
+        submitBtn.style.opacity = '0.5';
+        submitBtn.style.cursor = 'not-allowed';
+        return false;
     }
 }
 
-// Bắt sự kiện form submit (Ngăn cản thao tác F12 bypass)
-const formAdd = document.getElementById('add_password').closest('form');
+// Bắt sự kiện form submit
+const formAdd = document.getElementById('add_full_name').closest('form');
 if (formAdd) {
     formAdd.onsubmit = function(e) {
-        if (!window.validatePassword()) {
+        if (!window.validateAddForm()) {
             e.preventDefault();
-            document.getElementById('add_password').focus();
         }
     };
 }
